@@ -1,306 +1,122 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import Card from '@/components/Card';
-import QuestionOption from '@/components/QuestionOption';
-import LifeIndicator from '@/components/LifeIndicator';
+import Link from 'next/link';
 import ButtonPrimary from '@/components/ButtonPrimary';
 
-// Dummy questions data
-const questions = [
-  {
-    id: 1,
-    question: 'Berapakah hasil dari 15 × 8?',
-    options: [
-      { label: 'A', text: '120' },
-      { label: 'B', text: '105' },
-      { label: 'C', text: '130' },
-      { label: 'D', text: '115' },
-    ],
-    correctAnswer: 'A',
-  },
-  {
-    id: 2,
-    question: 'Siapakah presiden pertama Indonesia?',
-    options: [
-      { label: 'A', text: 'Soekarno' },
-      { label: 'B', text: 'Soeharto' },
-      { label: 'C', text: 'B.J. Habibie' },
-      { label: 'D', text: 'Megawati' },
-    ],
-    correctAnswer: 'A',
-  },
-  {
-    id: 3,
-    question: 'Apa ibu kota negara Jepang?',
-    options: [
-      { label: 'A', text: 'Osaka' },
-      { label: 'B', text: 'Kyoto' },
-      { label: 'C', text: 'Tokyo' },
-      { label: 'D', text: 'Hiroshima' },
-    ],
-    correctAnswer: 'C',
-  },
-  {
-    id: 4,
-    question: 'Berapakah akar kuadrat dari 144?',
-    options: [
-      { label: 'A', text: '10' },
-      { label: 'B', text: '11' },
-      { label: 'C', text: '12' },
-      { label: 'D', text: '13' },
-    ],
-    correctAnswer: 'C',
-  },
-  {
-    id: 5,
-    question: 'Planet mana yang paling dekat dengan matahari?',
-    options: [
-      { label: 'A', text: 'Venus' },
-      { label: 'B', text: 'Merkurius' },
-      { label: 'C', text: 'Mars' },
-      { label: 'D', text: 'Bumi' },
-    ],
-    correctAnswer: 'B',
-  },
-];
-
-export default function GamePage() {
-  const router = useRouter();
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
-  const [isAnswered, setIsAnswered] = useState(false);
-  const [score, setScore] = useState(0);
-  const [lives, setLives] = useState(3);
-  const [timer, setTimer] = useState(300); // 5 minutes
-  const [correctAnswers, setCorrectAnswers] = useState(0);
-
-  const currentQuestion = questions[currentQuestionIndex];
-
-  // Timer countdown
-  useEffect(() => {
-    if (timer > 0 && lives > 0) {
-      const interval = setInterval(() => {
-        setTimer((prev) => prev - 1);
-      }, 1000);
-      return () => clearInterval(interval);
-    } else if (timer === 0 || lives === 0) {
-      // Game over
-      router.push(`/result?score=${score}&correct=${correctAnswers}&time=${300 - timer}`);
-    }
-  }, [timer, lives, score, correctAnswers, router]);
-
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
-
-  const handleAnswerSelect = (label: string) => {
-    if (isAnswered) return;
-    setSelectedAnswer(label);
-  };
-
-  const handleSubmitAnswer = () => {
-    if (!selectedAnswer) return;
-
-    setIsAnswered(true);
-
-    if (selectedAnswer === currentQuestion.correctAnswer) {
-      setScore((prev) => prev + 10);
-      setCorrectAnswers((prev) => prev + 1);
-    } else {
-      setLives((prev) => prev - 1);
-    }
-
-    // Move to next question after 1.5 seconds
-    setTimeout(() => {
-      if (currentQuestionIndex < questions.length - 1) {
-        setCurrentQuestionIndex((prev) => prev + 1);
-        setSelectedAnswer(null);
-        setIsAnswered(false);
-      } else {
-        // Game finished
-        router.push(`/result?score=${score + (selectedAnswer === currentQuestion.correctAnswer ? 10 : 0)}&correct=${correctAnswers + (selectedAnswer === currentQuestion.correctAnswer ? 1 : 0)}&time=${300 - timer}`);
-      }
-    }, 1500);
-  };
-
+export default function Home() {
   return (
-    <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 p-4">
-      {/* Animated Background */}
+    <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 p-4">
+      {/* Animated Background Elements */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute left-1/4 top-1/4 h-96 w-96 animate-pulse rounded-full bg-cyan-500 opacity-20 blur-3xl"></div>
-        <div className="absolute right-1/4 bottom-1/4 h-96 w-96 animate-pulse rounded-full bg-purple-500 opacity-20 blur-3xl [animation-delay:1s]"></div>
+        <div className="absolute -left-1/4 top-1/4 h-96 w-96 animate-pulse rounded-full bg-purple-500 opacity-20 blur-3xl"></div>
+        <div className="absolute -right-1/4 top-1/2 h-96 w-96 animate-pulse rounded-full bg-blue-500 opacity-20 blur-3xl" style={{ animationDelay: '1s' }}></div>
+        <div className="absolute bottom-1/4 left-1/2 h-96 w-96 animate-pulse rounded-full bg-indigo-500 opacity-20 blur-3xl" style={{ animationDelay: '2s' }}></div>
       </div>
 
-      {/* Energy Lines */}
+      {/* Floating Particles */}
       <div className="absolute inset-0">
-        {[...Array(10)].map((_, i) => {
-          const randomTop = Math.random() * 100;
-          const randomDuration = 2 + Math.random() * 2;
-          const randomDelay = Math.random() * 2;
+        {[...Array(20)].map((_, i) => {
+          // Generate deterministic "random" values based on index
+          const seed1 = (i * 2654435761) % 2147483647;
+          const seed2 = (i * 1103515245 + 12345) % 2147483647;
+          const seed3 = (i * 22695477 + 1) % 2147483647;
+          const seed4 = (i * 48271) % 2147483647;
+          
+          const left = (seed1 / 2147483647) * 100;
+          const top = (seed2 / 2147483647) * 100;
+          const duration = 3 + (seed3 / 2147483647) * 4;
+          const delay = (seed4 / 2147483647) * 2;
+          
           return (
             <div
               key={i}
-              className="absolute h-px w-full bg-gradient-to-r from-transparent via-cyan-500 to-transparent opacity-30"
+              className="absolute h-2 w-2 rounded-full bg-white opacity-30"
               style={{
-                top: `${randomTop}%`,
-                animation: `shimmer ${randomDuration}s linear infinite`,
-                animationDelay: `${randomDelay}s`,
+                left: `${left}%`,
+                top: `${top}%`,
+                animation: `float ${duration}s ease-in-out infinite`,
+                animationDelay: `${delay}s`,
               }}
             ></div>
           );
         })}
       </div>
 
-      {/* Top Bar */}
-      <div className="relative z-10 mx-auto mb-6 max-w-5xl animate-slide-in">
-        <div className="rounded-2xl bg-gray-900/70 p-5 backdrop-blur-xl border border-cyan-500/30 shadow-2xl shadow-cyan-500/20">
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div className="group flex items-center gap-3 rounded-xl bg-gradient-to-r from-blue-600/30 to-cyan-600/30 px-5 py-3 transition-all hover:scale-105 border border-cyan-400/30">
-              <span className="text-3xl animate-pulse">⏱️</span>
-              <div>
-                <div className="text-xs text-cyan-300">Waktu Tersisa</div>
-                <span className={`text-2xl font-bold ${timer < 60 ? 'text-red-400 animate-pulse' : 'text-cyan-300'}`}>
-                  {formatTime(timer)}
-                </span>
-              </div>
-            </div>
-            <div className="group flex items-center gap-3 rounded-xl bg-gradient-to-r from-purple-600/30 to-pink-600/30 px-5 py-3 transition-all hover:scale-105 border border-pink-400/30">
-              <span className="text-3xl transition-transform group-hover:rotate-12">⭐</span>
-              <div>
-                <div className="text-xs text-pink-300">Skor</div>
-                <span className="text-2xl font-bold text-pink-300">{score}</span>
-              </div>
-            </div>
-            <div className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-red-600/30 to-orange-600/30 px-5 py-3 border border-orange-400/30">
-              <LifeIndicator lives={lives} />
+      <main className="relative z-10 w-full max-w-4xl mx-auto text-center">
+        {/* Hero Section */}
+        <div className="mb-12 animate-scale-in">
+          <div className="mb-6 inline-block animate-float rounded-full bg-gradient-to-r from-yellow-400 via-pink-500 to-purple-600 p-1">
+            <div className="rounded-full bg-gray-900 px-8 py-4">
+              <span className="text-6xl">🎮</span>
             </div>
           </div>
+          <h1 className="mb-6 bg-gradient-to-r from-yellow-200 via-pink-300 to-purple-300 bg-clip-text text-6xl font-extrabold text-transparent drop-shadow-2xl md:text-7xl animate-slide-up">
+            Game Simulasi UTBK
+          </h1>
+          <p className="mb-8 text-xl text-gray-200 md:text-2xl animate-slide-up" style={{ animationDelay: '0.2s' }}>
+            🚀 Latihan UTBK Interaktif dengan Teknologi Masa Depan! 
+          </p>
+          <p className="text-lg text-gray-300 animate-slide-up" style={{ animationDelay: '0.3s' }}>
+            Tingkatkan skor, kalahkan waktu, dan raih prestasi terbaikmu! ⚡
+          </p>
         </div>
-      </div>
 
-      {/* Question Card */}
-      <div className="relative z-10 mx-auto max-w-5xl animate-scale-in">
-        <div className="rounded-3xl bg-gray-900/70 p-1 backdrop-blur-xl border border-purple-500/30 shadow-2xl shadow-purple-500/20">
-          <div className="rounded-3xl bg-gradient-to-br from-gray-900/90 to-gray-800/90 p-8">
-            {/* Question Number & Progress */}
-            <div className="mb-6 flex items-center justify-between">
-              <span className="rounded-full bg-gradient-to-r from-cyan-500 to-blue-500 px-5 py-2 text-sm font-bold text-white shadow-lg">
-                🎯 Soal {currentQuestionIndex + 1} dari {questions.length}
+        {/* Buttons */}
+        <div className="mb-16 flex flex-col gap-4 sm:flex-row sm:justify-center animate-slide-up" style={{ animationDelay: '0.4s' }}>
+          <Link href="/game" className="group sm:w-auto">
+            <button className="w-full transform rounded-2xl bg-gradient-to-r from-green-400 to-blue-500 px-8 py-4 text-xl font-bold text-white shadow-2xl transition-all duration-300 hover:scale-110 hover:shadow-green-500/50 active:scale-95">
+              <span className="flex items-center justify-center gap-3">
+                <span className="text-2xl group-hover:animate-bounce">🚀</span>
+                Mulai Petualangan
+                <span className="text-2xl">✨</span>
               </span>
-              <div className="flex-1 ml-6 h-3 overflow-hidden rounded-full bg-gray-700 border border-cyan-500/30">
-                <div
-                  className="h-full bg-gradient-to-r from-cyan-500 to-blue-500 transition-all duration-500 shadow-lg shadow-cyan-500/50"
-                  style={{ width: `${((currentQuestionIndex + 1) / questions.length) * 100}%` }}
-                />
-              </div>
-            </div>
+            </button>
+          </Link>
+          <Link href="/login" className="group sm:w-auto">
+            <button className="w-full transform rounded-2xl border-2 border-purple-400 bg-purple-900/50 px-8 py-4 text-xl font-bold text-purple-200 backdrop-blur-sm transition-all duration-300 hover:scale-110 hover:border-purple-300 hover:bg-purple-800/70 active:scale-95">
+              <span className="flex items-center justify-center gap-3">
+                <span className="text-2xl group-hover:animate-spin">🔐</span>
+                Login / Register
+              </span>
+            </button>
+          </Link>
+        </div>
 
-            {/* Question Text */}
-            <div className="mb-8 rounded-2xl bg-gradient-to-r from-purple-600/20 to-pink-600/20 p-6 backdrop-blur-sm border border-purple-400/30">
-              <h2 className="text-2xl font-bold text-white md:text-3xl">{currentQuestion.question}</h2>
-            </div>
-
-            {/* Options */}
-            <div className="mb-6 space-y-4">
-              {currentQuestion.options.map((option) => {
-                const isCorrect = isAnswered && option.label === currentQuestion.correctAnswer;
-                const isWrong = isAnswered && option.label === selectedAnswer && option.label !== currentQuestion.correctAnswer;
-                const isSelected = !isAnswered && option.label === selectedAnswer;
-
-                return (
-                  <button
-                    key={option.label}
-                    onClick={() => handleAnswerSelect(option.label)}
-                    className={`group w-full transform rounded-2xl p-5 text-left transition-all duration-300 hover:scale-[1.02] border-2 ${
-                      isCorrect
-                        ? 'border-green-500 bg-gradient-to-r from-green-600/30 to-emerald-600/30 shadow-lg shadow-green-500/50'
-                        : isWrong
-                        ? 'border-red-500 bg-gradient-to-r from-red-600/30 to-pink-600/30 shadow-lg shadow-red-500/50'
-                        : isSelected
-                        ? 'border-cyan-500 bg-gradient-to-r from-cyan-600/30 to-blue-600/30 shadow-lg shadow-cyan-500/50'
-                        : 'border-gray-600 bg-gray-800/50 hover:border-cyan-500/50 hover:bg-gray-700/50'
-                    }`}
-                  >
-                    <div className="flex items-center gap-4">
-                      <span className={`flex h-12 w-12 items-center justify-center rounded-xl text-xl font-bold transition-all ${
-                        isCorrect
-                          ? 'bg-green-500 text-white'
-                          : isWrong
-                          ? 'bg-red-500 text-white'
-                          : isSelected
-                          ? 'bg-cyan-500 text-white'
-                          : 'bg-gray-700 text-gray-300 group-hover:bg-cyan-600 group-hover:text-white'
-                      }`}>
-                        {option.label}
-                      </span>
-                      <span className={`flex-1 text-lg transition-colors ${
-                        isCorrect || isWrong || isSelected ? 'text-white font-semibold' : 'text-gray-300 group-hover:text-white'
-                      }`}>
-                        {option.text}
-                      </span>
-                      {isCorrect && <span className="text-3xl animate-bounce">✅</span>}
-                      {isWrong && <span className="text-3xl animate-bounce">❌</span>}
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Submit Button */}
-            {!isAnswered && (
-              <button
-                onClick={handleSubmitAnswer}
-                disabled={!selectedAnswer}
-                className={`group relative w-full overflow-hidden rounded-2xl px-8 py-5 text-xl font-bold transition-all duration-300 ${
-                  selectedAnswer
-                    ? 'bg-gradient-to-r from-green-600 to-emerald-600 text-white shadow-2xl shadow-green-500/50 hover:scale-105 active:scale-95'
-                    : 'bg-gray-700 text-gray-500 cursor-not-allowed'
-                }`}
-              >
-                <span className="relative z-10 flex items-center justify-center gap-3">
-                  {selectedAnswer ? (
-                    <>
-                      <span className="transition-transform group-hover:scale-110">🚀</span>
-                      <span>Jawab Sekarang!</span>
-                    </>
-                  ) : (
-                    <>
-                      <span>⚠️</span>
-                      <span>Pilih Jawaban Dulu</span>
-                    </>
-                  )}
-                </span>
-                {selectedAnswer && <div className="absolute inset-0 shimmer"></div>}
-              </button>
-            )}
-
-            {/* Feedback */}
-            {isAnswered && (
-              <div className={`animate-scale-in rounded-2xl p-6 text-center backdrop-blur-sm border-2 ${
-                selectedAnswer === currentQuestion.correctAnswer
-                  ? 'border-green-500 bg-gradient-to-r from-green-600/30 to-emerald-600/30'
-                  : 'border-red-500 bg-gradient-to-r from-red-600/30 to-pink-600/30'
-              }`}>
-                <p className="mb-2 text-4xl animate-bounce">
-                  {selectedAnswer === currentQuestion.correctAnswer ? '🎉' : '💔'}
-                </p>
-                <p className="mb-2 text-2xl font-bold text-white">
-                  {selectedAnswer === currentQuestion.correctAnswer ? 'Luar Biasa!' : 'Ups, Salah!'}
-                </p>
-                {selectedAnswer !== currentQuestion.correctAnswer && (
-                  <p className="text-lg text-gray-300">
-                    Jawaban yang benar: <span className="font-bold text-green-400">{currentQuestion.correctAnswer}</span>
-                  </p>
-                )}
-              </div>
-            )}
+        {/* Features */}
+        <div className="grid gap-6 sm:grid-cols-3 animate-slide-up" style={{ animationDelay: '0.5s' }}>
+          <div className="group transform rounded-2xl bg-gradient-to-br from-blue-500/20 to-cyan-500/20 p-6 backdrop-blur-md transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-cyan-500/50 border border-cyan-400/30">
+            <div className="mb-4 text-5xl transition-transform duration-300 group-hover:scale-125 group-hover:animate-pulse">⏱️</div>
+            <h3 className="mb-3 text-xl font-bold text-cyan-300">Timer Challenge</h3>
+            <p className="text-gray-300">Uji kecepatan dan ketepatan dalam hitungan detik!</p>
+          </div>
+          <div className="group transform rounded-2xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 p-6 backdrop-blur-md transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-pink-500/50 border border-pink-400/30">
+            <div className="mb-4 text-5xl transition-transform duration-300 group-hover:scale-125 group-hover:rotate-12">💯</div>
+            <h3 className="mb-3 text-xl font-bold text-pink-300">Score System</h3>
+            <p className="text-gray-300">Raih skor tertinggi dan jadilah juara!</p>
+          </div>
+          <div className="group transform rounded-2xl bg-gradient-to-br from-red-500/20 to-orange-500/20 p-6 backdrop-blur-md transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-orange-500/50 border border-orange-400/30">
+            <div className="mb-4 text-5xl transition-transform duration-300 group-hover:scale-125 group-hover:animate-bounce">❤️</div>
+            <h3 className="mb-3 text-xl font-bold text-orange-300">Life System</h3>
+            <p className="text-gray-300">Jaga nyawamu dan bertahan sampai akhir!</p>
           </div>
         </div>
-      </div>
+
+        {/* Stats Section */}
+        <div className="mt-16 grid gap-6 sm:grid-cols-3 animate-slide-up" style={{ animationDelay: '0.6s' }}>
+          <div className="rounded-xl bg-white/10 p-4 backdrop-blur-md border border-white/20">
+            <div className="text-3xl font-bold text-yellow-300">1000+</div>
+            <div className="text-sm text-gray-300">Siswa Aktif</div>
+          </div>
+          <div className="rounded-xl bg-white/10 p-4 backdrop-blur-md border border-white/20">
+            <div className="text-3xl font-bold text-green-300">5000+</div>
+            <div className="text-sm text-gray-300">Soal Tersedia</div>
+          </div>
+          <div className="rounded-xl bg-white/10 p-4 backdrop-blur-md border border-white/20">
+            <div className="text-3xl font-bold text-blue-300">99.9%</div>
+            <div className="text-sm text-gray-300">Kepuasan</div>
+          </div>
+        </div>
+      </main>
     </div>
   );
 }
