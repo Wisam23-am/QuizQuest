@@ -11,8 +11,9 @@ export default function LifeIndicator({ lives, maxLives = 3 }: LifeIndicatorProp
       {Array.from({ length: maxLives }).map((_, index) => (
         <span
           key={index}
-          className="text-2xl"
-          style={{ opacity: index < lives ? 1 : 0.3 }}
+          className={`text-2xl transition-opacity duration-300 ${
+            index < lives ? 'opacity-100' : 'opacity-30'
+          }`}
         >
           ❤️
         </span>

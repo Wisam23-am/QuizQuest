@@ -132,23 +132,27 @@ export default function GamePage() {
       {/* Animated Background */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute left-1/4 top-1/4 h-96 w-96 animate-pulse rounded-full bg-cyan-500 opacity-20 blur-3xl"></div>
-        <div className="absolute right-1/4 bottom-1/4 h-96 w-96 animate-pulse rounded-full bg-purple-500 opacity-20 blur-3xl" style={{ animationDelay: '1s' }}></div>
+        <div className="absolute right-1/4 bottom-1/4 h-96 w-96 animate-pulse rounded-full bg-purple-500 opacity-20 blur-3xl [animation-delay:1s]"></div>
       </div>
 
       {/* Energy Lines */}
       <div className="absolute inset-0">
-        {[...Array(10)].map((_, i) => (
-          <div
-            key={i}
-            className="absolute h-px bg-gradient-to-r from-transparent via-cyan-500 to-transparent opacity-30"
-            style={{
-              top: `${Math.random() * 100}%`,
-              width: '100%',
-              animation: `shimmer ${2 + Math.random() * 2}s linear infinite`,
-              animationDelay: `${Math.random() * 2}s`,
-            }}
-          ></div>
-        ))}
+        {[...Array(10)].map((_, i) => {
+          const randomTop = Math.random() * 100;
+          const randomDuration = 2 + Math.random() * 2;
+          const randomDelay = Math.random() * 2;
+          return (
+            <div
+              key={i}
+              className="absolute h-px w-full bg-gradient-to-r from-transparent via-cyan-500 to-transparent opacity-30"
+              style={{
+                top: `${randomTop}%`,
+                animation: `shimmer ${randomDuration}s linear infinite`,
+                animationDelay: `${randomDelay}s`,
+              }}
+            ></div>
+          );
+        })}
       </div>
 
       {/* Top Bar */}
