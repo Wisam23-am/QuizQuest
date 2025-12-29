@@ -1,10 +1,19 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 
 export default function Home() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    // Cek status login dari localStorage
+    const loggedIn = localStorage.getItem('isLoggedIn') === 'true';
+    setIsLoggedIn(loggedIn);
+  }, []);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50">
       <Navbar />
@@ -37,11 +46,13 @@ export default function Home() {
                     <span>🚀</span> Mulai Latihan Sekarang
                   </button>
                 </Link>
-                <Link href="/login" className="group">
-                  <button className="w-full sm:w-auto px-8 py-4 bg-white text-slate-700 rounded-xl font-semibold text-lg border-2 border-gray-200 hover:border-blue-600 hover:text-blue-600 transition-all duration-300 hover:scale-105 active:scale-95 flex items-center justify-center gap-2">
-                    <span>👤</span> Login / Daftar
-                  </button>
-                </Link>
+                {!isLoggedIn && (
+                  <Link href="/login" className="group">
+                    <button className="w-full sm:w-auto px-8 py-4 bg-white text-slate-700 rounded-xl font-semibold text-lg border-2 border-gray-200 hover:border-blue-600 hover:text-blue-600 transition-all duration-300 hover:scale-105 active:scale-95 flex items-center justify-center gap-2">
+                      <span>👤</span> Login / Daftar
+                    </button>
+                  </Link>
+                )}
               </div>
             </div>
 
