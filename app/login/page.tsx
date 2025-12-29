@@ -131,8 +131,10 @@ import ButtonPrimary from '@/components/ButtonPrimary';
 
 import React, { useState } from 'react';
 import { Eye, EyeOff, Mail, Lock, User, ArrowRight } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 const App = () => {
+  const router = useRouter();
   const [view, setView] = useState('login'); // 'login' or 'register'
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -156,6 +158,8 @@ const App = () => {
         ? "Bismillah, Anda berhasil masuk ke simulasi." 
         : "Alhamdulillah, akun Anda telah terdaftar.";
       alert(message);
+      // Redirect ke dashboard (halaman utama)
+      router.push('/');
     }, 1500);
   };
 
