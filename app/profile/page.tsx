@@ -5,37 +5,88 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import { getCurrentUser, getUserProfile, updateUserProfile, DEV_MODE } from '@/lib/auth/auth-helpers';
 
 export default function ProfilePage() {
   const router = useRouter();
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [userId, setUserId] = useState('');
   const [userName, setUserName] = useState('');
   const [userEmail, setUserEmail] = useState('');
+  const [userStats, setUserStats] = useState({
+    total_games: 0,
+    best_score: 0,
+    school: '',
+    target_university: '',
+  });
   const [isEditing, setIsEditing] = useState(false);
   const [editedName, setEditedName] = useState('');
+  const [editedSchool, setEditedSchool] = useState('');
+  const [editedUniversity, setEditedUniversity] = useState('');
 
   useEffect(() => {
-    // Cek status login
-    const loggedIn = localStorage.getItem('isLoggedIn') === 'true';
-    if (!loggedIn) {
-      router.push('/login');
-      return;
-    }
-
-    const name = localStorage.getItem('userName') || 'User';
-    const email = localStorage.getItem('userEmail') || 'user@example.com';
-    setIsLoggedIn(loggedIn);
-    setUserName(name);
-    setUserEmail(email);
-    setEditedName(name);
+    loadProfile();
   }, [router]);
 
-  const handleSaveProfile = () => {
-    if (editedName.trim()) {
-      localStorage.setItem('userName', editedName);
+  const loadProfile = async () => {
+    try {
+      const { user, error: userError } = await getCurrentUser();
+
+      if (!user && !DEV_MODE) {
+        router.push('/login');
+        return;
+      }
+
+      const userData = user || { id: 'dev-user-00000000-0000-0000-0000-000000000001', email: 'dev@utbk-game.com' };
+      const { profile, error: profileError } = await getUserProfile(userData.id);
+
+      if (profile) {
+        setUserId(profile.id || '');
+        setUserName(profile.full_name || profile.username);
+        setUserEmail(userData.email);
+        setUserStats({
+          total_games: profile.total_games || 0,
+          best_score: profile.best_score || 0,
+          school: profile.school || '',
+          target_university: profile.target_university || '',
+        });
+        setEditedName(profile.full_name || profile.username);
+        setEditedSchool(profile.school || '');
+        setEditedUniversity(profile.target_university || '');
+      }
+    } catch (error) {
+      console.error('Error loading profile:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSaveProfile = async () => {
+    if (!editedName.trim()) return;
+
+    try {
+      const { profile, error } = await updateUserProfile(userId, {
+        full_name: editedName,
+        school: editedSchool,
+        target_university: editedUniversity,
+      });
+
+      if (error) {
+        alert('Gagal menyimpan profil');
+        return;
+      }
+
       setUserName(editedName);
+      setUserStats({
+        ...userStats,
+        school: editedSchool,
+        target_university: editedUniversity,
+      });
       setIsEditing(false);
       alert('Profil berhasil diperbarui!');
+    } catch (error) {
+      console.error('Error saving profile:', error);
+      alert('Terjadi kesalahan saat menyimpan');
     }
   };
 
@@ -48,8 +99,15 @@ export default function ProfilePage() {
       .slice(0, 2);
   };
 
-  if (!isLoggedIn) {
-    return null;
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin text-6xl mb-4">⏳</div>
+          <p className="text-slate-600">Memuat profil...</p>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -101,21 +159,57 @@ export default function ProfilePage() {
             {/* Email */}
             <div className="group">
               <label className="block text-sm font-semibold text-slate-700 mb-2">Email</label>
-              <div className="w-full px-4 py-3 bg-gray-50 rounded-xl text-slate-800 font-medium">
+              <div className="w-full px-4 py-3 bg-gray-50 rounded-xl text-slate-800 font-medium break-all">
                 {userEmail}
               </div>
               <p className="mt-2 text-xs text-slate-500">Email tidak dapat diubah</p>
             </div>
 
+            {/* Sekolah */}
+            <div className="group">
+              <label className="block text-sm font-semibold text-slate-700 mb-2">Sekolah</label>
+              {isEditing ? (
+                <input
+                  type="text"
+                  value={editedSchool}
+                  onChange={(e) => setEditedSchool(e.target.value)}
+                  placeholder="Nama sekolah"
+                  className="w-full px-4 py-3 border-2 border-blue-300 rounded-xl focus:border-blue-600 focus:outline-none focus:ring-4 focus:ring-blue-600/20 transition-all"
+                />
+              ) : (
+                <div className="w-full px-4 py-3 bg-gray-50 rounded-xl text-slate-800 font-medium">
+                  {userStats.school || 'Belum diisi'}
+                </div>
+              )}
+            </div>
+
+            {/* Target Universitas */}
+            <div className="group">
+              <label className="block text-sm font-semibold text-slate-700 mb-2">Target Universitas</label>
+              {isEditing ? (
+                <input
+                  type="text"
+                  value={editedUniversity}
+                  onChange={(e) => setEditedUniversity(e.target.value)}
+                  placeholder="Target universitas"
+                  className="w-full px-4 py-3 border-2 border-blue-300 rounded-xl focus:border-blue-600 focus:outline-none focus:ring-4 focus:ring-blue-600/20 transition-all"
+                />
+              ) : (
+                <div className="w-full px-4 py-3 bg-gray-50 rounded-xl text-slate-800 font-medium">
+                  {userStats.target_university || 'Belum diisi'}
+                </div>
+              )}
+            </div>
+
             {/* Statistik */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mt-8">
               <div className="bg-gradient-to-br from-blue-50 to-white p-4 rounded-xl border border-blue-100 text-center">
-                <div className="text-3xl font-bold text-blue-600">0</div>
+                <div className="text-3xl font-bold text-blue-600">{userStats.total_games}</div>
                 <div className="text-sm text-slate-600 mt-1">Latihan</div>
               </div>
               <div className="bg-gradient-to-br from-indigo-50 to-white p-4 rounded-xl border border-indigo-100 text-center">
-                <div className="text-3xl font-bold text-indigo-600">0</div>
-                <div className="text-sm text-slate-600 mt-1">Skor Rata-rata</div>
+                <div className="text-3xl font-bold text-indigo-600">{userStats.best_score}</div>
+                <div className="text-sm text-slate-600 mt-1">Skor Terbaik</div>
               </div>
               <div className="bg-gradient-to-br from-purple-50 to-white p-4 rounded-xl border border-purple-100 text-center">
                 <div className="text-3xl font-bold text-purple-600">-</div>
@@ -136,6 +230,8 @@ export default function ProfilePage() {
                   <button
                     onClick={() => {
                       setEditedName(userName);
+                      setEditedSchool(userStats.school);
+                      setEditedUniversity(userStats.target_university);
                       setIsEditing(false);
                     }}
                     className="flex-1 px-4 sm:px-6 py-3 bg-gray-200 text-slate-700 rounded-xl text-sm sm:text-base font-semibold hover:bg-gray-300 transition-all duration-300 hover:scale-105 active:scale-95"

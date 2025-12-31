@@ -2,6 +2,28 @@
 
 Platform latihan UTBK (Ujian Tulis Berbasis Komputer) yang inovatif dengan pendekatan gamifikasi untuk membuat persiapan ujian lebih menyenangkan dan efektif.
 
+## � Status Proyek
+
+**Phase 1 Complete ✅** - Database & Game Integration  
+**Current:** Ready for testing and adding more questions
+
+### ✅ Completed Features:
+
+- Database fully integrated with Supabase
+- Real-time question fetching
+- Game result saving
+- Auto-update leaderboard stats
+- Dev mode for easy testing
+- Diagnostic tools
+- Error handling & logging
+
+### 🎯 Next Steps:
+
+- Update Leaderboard page (real data)
+- Update Profile page (real stats)
+- Add 200+ questions
+- Deploy to production
+
 ## 📋 Deskripsi
 
 UTBK Game Simulation adalah aplikasi web yang dirancang untuk membantu siswa mempersiapkan diri menghadapi UTBK dengan cara yang lebih interaktif dan menarik. Aplikasi ini menggunakan konsep gamifikasi dengan sistem nyawa, timer, dan leaderboard untuk meningkatkan motivasi belajar.
@@ -10,19 +32,41 @@ UTBK Game Simulation adalah aplikasi web yang dirancang untuk membantu siswa mem
 
 - 🎯 **Simulasi Ujian Real-time**: Timer dan sistem penilaian otomatis yang menyerupai ujian UTBK sebenarnya
 - ❤️ **Sistem Nyawa**: Game mechanics dengan 3 nyawa untuk meningkatkan fokus dan tantangan
-- 🏆 **Leaderboard**: Kompetisi dengan pengguna lain untuk memotivasi pembelajaran
-- 📊 **Pelacakan Progress**: Riwayat hasil ujian dan analisis performa
-- 👤 **Sistem Autentikasi**: Login dan register untuk menyimpan progres pribadi
+- 🏆 **Leaderboard**: Kompetisi global dengan pengguna lain (powered by Supabase)
+- 📊 **Pelacakan Progress**: Riwayat hasil ujian dan analisis performa tersimpan di database
+- 👤 **Sistem Autentikasi**: Login dan register dengan Supabase Auth
 - 📱 **Responsive Design**: Dapat diakses dari desktop, tablet, dan mobile
+- 💡 **Penjelasan Soal**: Setiap soal dilengkapi dengan penjelasan detail
+- 🔧 **Dev Mode**: Testing mode untuk development tanpa database
 
 ## 🛠️ Teknologi yang Digunakan
 
-- **Framework**: Next.js 16.1.1 (App Router)
+### Frontend
+
+- **Framework**: Next.js 16.1.1 (App Router with Turbopack)
 - **React**: 19.2.3
 - **TypeScript**: 5.x
 - **Styling**: Tailwind CSS 4.x
 - **Icons**: Lucide React
+
+### Backend & Database
+
+- **Backend**: Supabase (PostgreSQL + Auth + Realtime)
+- **Database**: PostgreSQL with RLS (Row Level Security)
+- **Authentication**: Supabase Auth (JWT-based)
+- **Storage**: Supabase Storage (for future assets)
+
+### DevOps & Deployment
+
+- **Hosting**: Vercel (Free tier - 100GB bandwidth)
+- **Database**: Supabase (Free tier - 500MB, 50k MAU)
+- **Version Control**: Git + GitHub
+
+### Developer Tools
+
 - **Linting**: ESLint 9.x
+- **Diagnostics**: Custom diagnostic page (`/diagnostic`)
+- **Logging**: Console logging with emoji indicators
 
 ## 📁 Struktur Proyek
 
@@ -32,17 +76,19 @@ UTBK-game-simulation/
 │   ├── page.tsx             # Halaman utama (Home)
 │   ├── layout.tsx           # Root layout
 │   ├── globals.css          # Global styles
-│   ├── game/                # Halaman simulasi game
+│   ├── game/                # Halaman simulasi game ✅ SUPABASE
 │   │   └── page.tsx
 │   ├── hasil/               # Halaman hasil ujian
 │   │   └── page.tsx
-│   ├── login/               # Halaman login
+│   ├── login/               # Halaman login ✅ NEW DESIGN
 │   │   └── page.tsx
 │   ├── register/            # Halaman registrasi
 │   │   └── page.tsx
 │   ├── profile/             # Halaman profil pengguna
 │   │   └── page.tsx
-│   └── leaderboard/         # Halaman leaderboard
+│   ├── leaderboard/         # Halaman leaderboard
+│   │   └── page.tsx
+│   └── diagnostic/          # Halaman diagnostik ✅ NEW
 │       └── page.tsx
 ├── components/              # Reusable components
 │   ├── Navbar.tsx          # Navigation bar
@@ -50,14 +96,147 @@ UTBK-game-simulation/
 │   ├── Card.tsx            # Card wrapper
 │   ├── ButtonPrimary.tsx   # Primary button
 │   ├── QuestionOption.tsx  # Question option button
+│   ├── LeaderboardCard.tsx # Leaderboard display
 │   └── LifeIndicator.tsx   # Life/health indicator
+├── lib/                     # Utility functions & helpers ✅
+│   ├── auth/               # Authentication helpers
+│   │   ├── auth-actions.ts # Server actions (signIn, signUp)
+│   │   └── auth-helpers.ts # Client helpers + dev mode
+│   ├── supabase/           # Supabase clients
+│   │   ├── client.ts       # Browser client
+│   │   └── server.ts       # Server client
+│   └── game/               # Game-related helpers ✅ NEW
+│       ├── game-helpers.ts # Question fetch, result save
+│       └── database-check.ts # Diagnostic helpers
 ├── public/                  # Static assets
+│   └── logo.png            # App logo
+├── supabase-schema.sql     # Complete database schema ✅ NEW
+├── DATABASE_SETUP.md       # Setup instructions ✅ NEW
+├── TROUBLESHOOTING.md      # Common issues guide ✅ NEW
+├── PROGRESS.md             # Development progress ✅ UPDATED
 ├── package.json            # Dependencies
 ├── tsconfig.json           # TypeScript config
 ├── next.config.ts          # Next.js config
 ├── tailwind.config.ts      # Tailwind config
 └── eslint.config.mjs       # ESLint config
 ```
+
+## 🚀 Cara Menjalankan Proyek
+
+### Prerequisites
+
+- Node.js 18+
+- npm atau yarn atau pnpm
+- Supabase account (free tier)
+
+### 1. Clone Repository
+
+```bash
+git clone <repository-url>
+cd UTBK-game-simulation
+```
+
+### 2. Install Dependencies
+
+```bash
+npm install
+# atau
+yarn install
+# atau
+pnpm install
+```
+
+### 3. Setup Supabase
+
+1. Buat project di [Supabase](https://supabase.com)
+2. Copy API credentials
+3. Buat file `.env.local`:
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+NEXT_PUBLIC_DEV_MODE=true
+```
+
+### 4. Setup Database
+
+1. Buka Supabase Dashboard → SQL Editor
+2. Copy seluruh isi `supabase-schema.sql`
+3. Paste dan Run (Ctrl+Enter)
+4. Verify: Visit `/diagnostic` page
+
+### 5. Run Development Server
+
+```bash
+npm run dev
+# atau
+yarn dev
+# atau
+pnpm dev
+```
+
+Buka [http://localhost:3000](http://localhost:3000)
+
+### 6. Test & Verify
+
+- Visit `/diagnostic` - Check database status
+- Visit `/game` - Try playing (dev mode active)
+- Check console for logs (✅/❌/⚠️/🔧)
+
+## 📖 Documentation
+
+- **Setup Guide**: [DATABASE_SETUP.md](DATABASE_SETUP.md)
+- **Troubleshooting**: [TROUBLESHOOTING.md](TROUBLESHOOTING.md)
+- **Progress Tracking**: [PROGRESS.md](PROGRESS.md)
+- **Database Schema**: [supabase-schema.sql](supabase-schema.sql)
+
+## 🔧 Developer Tools
+
+### Diagnostic Page
+
+Visit `/diagnostic` to check:
+
+- ✅ Database connection
+- ✅ Table existence
+- ✅ Question count
+- ✅ Authentication status
+- ✅ Detailed error messages
+
+### Dev Mode
+
+Set `NEXT_PUBLIC_DEV_MODE=true` for:
+
+- 🔧 Mock user authentication
+- 🔧 Skip database save
+- 🔧 Visual dev badge
+- 🔧 Enhanced logging
+
+### Console Logging
+
+- ✅ Success (green)
+- ❌ Error (red)
+- ⚠️ Warning (yellow)
+- 🔧 Dev mode (yellow)
+- 💾 Database operations
+- 🎮 User actions
+
+## 📊 Database Schema
+
+### Tables
+
+1. **profiles** - User data & stats
+2. **questions** - Question bank (UTBK)
+3. **game_results** - Game session results
+4. **global_leaderboard** - Materialized view (top 100)
+
+### Features
+
+- ✅ Auto-update profile stats (triggers)
+- ✅ Auto-refresh leaderboard (triggers)
+- ✅ Row Level Security (RLS)
+- ✅ Indexed for performance
+
+See [supabase-schema.sql](supabase-schema.sql) for details.
 
 ## 🚀 Instalasi dan Menjalankan Aplikasi
 

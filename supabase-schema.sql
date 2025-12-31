@@ -1,0 +1,361 @@
+-- ============================================
+-- UTBK GAME SIMULATION - DATABASE SCHEMA
+-- Run this in Supabase SQL Editor
+-- ============================================
+
+-- Enable UUID extension
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+-- ============================================
+-- 1. USER PROFILES TABLE
+-- ============================================
+CREATE TABLE IF NOT EXISTS profiles (
+  id UUID REFERENCES auth.users ON DELETE CASCADE PRIMARY KEY,
+  username VARCHAR(50) UNIQUE NOT NULL,
+  full_name VARCHAR(100),
+  avatar_url TEXT,
+  school VARCHAR(100),
+  target_university VARCHAR(100),
+  total_games INTEGER DEFAULT 0,
+  best_score INTEGER DEFAULT 0,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- ============================================
+-- 2. QUESTIONS BANK TABLE
+-- ============================================
+CREATE TABLE IF NOT EXISTS questions (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  category VARCHAR(50) NOT NULL,
+    -- 'matematika', 'bahasa-indonesia', 'bahasa-inggris', 'tps'
+  subcategory VARCHAR(100),
+  difficulty VARCHAR(20) NOT NULL, -- 'easy', 'medium', 'hard'
+  question TEXT NOT NULL,
+  options JSONB NOT NULL,
+    -- [{"label": "A", "text": "..."}, {"label": "B", "text": "..."}, ...]
+  correct_answer VARCHAR(1) NOT NULL,
+  explanation TEXT,
+  source VARCHAR(30) DEFAULT 'curated',
+    -- 'curated', 'ai-generated', 'utbk-2024', 'utbk-2023'
+  year INTEGER,
+  verified BOOLEAN DEFAULT false,
+  usage_count INTEGER DEFAULT 0,
+  correct_rate FLOAT DEFAULT 0,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- ============================================
+-- 3. GAME RESULTS TABLE
+-- ============================================
+CREATE TABLE IF NOT EXISTS game_results (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID REFERENCES auth.users ON DELETE CASCADE NOT NULL,
+  score INTEGER NOT NULL,
+  correct_answers INTEGER NOT NULL,
+  wrong_answers INTEGER NOT NULL,
+  total_questions INTEGER NOT NULL,
+  time_spent INTEGER, -- in seconds
+  category VARCHAR(50),
+  difficulty VARCHAR(20),
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- ============================================
+-- 4. INDEXES FOR PERFORMANCE
+-- ============================================
+CREATE INDEX IF NOT EXISTS idx_game_results_user ON game_results(user_id);
+CREATE INDEX IF NOT EXISTS idx_game_results_score ON game_results(score DESC);
+CREATE INDEX IF NOT EXISTS idx_game_results_created ON game_results(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_questions_category ON questions(category, difficulty);
+CREATE INDEX IF NOT EXISTS idx_questions_verified ON questions(verified) WHERE verified = true;
+
+-- ============================================
+-- 5. GLOBAL LEADERBOARD (Materialized View)
+-- ============================================
+CREATE MATERIALIZED VIEW IF NOT EXISTS global_leaderboard AS
+SELECT
+  p.id,
+  p.username,
+  p.full_name,
+  p.avatar_url,
+  p.school,
+  p.target_university,
+  MAX(gr.score) as best_score,
+  COUNT(gr.id) as total_games,
+  AVG(gr.score)::INTEGER as avg_score,
+  SUM(gr.correct_answers) as total_correct,
+  RANK() OVER (ORDER BY MAX(gr.score) DESC, COUNT(gr.id) DESC) as rank
+FROM profiles p
+LEFT JOIN game_results gr ON p.id = gr.user_id
+GROUP BY p.id, p.username, p.full_name, p.avatar_url, p.school, p.target_university
+ORDER BY best_score DESC, total_games DESC
+LIMIT 100;
+
+-- Create unique index on materialized view
+CREATE UNIQUE INDEX IF NOT EXISTS idx_global_leaderboard_id ON global_leaderboard(id);
+
+-- ============================================
+-- 6. FUNCTION TO REFRESH LEADERBOARD
+-- ============================================
+CREATE OR REPLACE FUNCTION refresh_leaderboard()
+RETURNS TRIGGER AS $$
+BEGIN
+  REFRESH MATERIALIZED VIEW CONCURRENTLY global_leaderboard;
+  RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Trigger to auto-refresh leaderboard after game results insert
+DROP TRIGGER IF EXISTS trigger_refresh_leaderboard ON game_results;
+CREATE TRIGGER trigger_refresh_leaderboard
+AFTER INSERT OR UPDATE OR DELETE ON game_results
+FOR EACH STATEMENT
+EXECUTE FUNCTION refresh_leaderboard();
+
+-- ============================================
+-- 7. FUNCTION TO UPDATE PROFILE STATS
+-- ============================================
+CREATE OR REPLACE FUNCTION update_profile_stats()
+RETURNS TRIGGER AS $$
+BEGIN
+  UPDATE profiles
+  SET
+    total_games = (SELECT COUNT(*) FROM game_results WHERE user_id = NEW.user_id),
+    best_score = (SELECT MAX(score) FROM game_results WHERE user_id = NEW.user_id),
+    updated_at = NOW()
+  WHERE id = NEW.user_id;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Trigger to auto-update profile stats
+DROP TRIGGER IF EXISTS trigger_update_profile_stats ON game_results;
+CREATE TRIGGER trigger_update_profile_stats
+AFTER INSERT ON game_results
+FOR EACH ROW
+EXECUTE FUNCTION update_profile_stats();
+
+-- ============================================
+-- 8. ROW LEVEL SECURITY (RLS)
+-- ============================================
+
+-- Enable RLS
+ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE game_results ENABLE ROW LEVEL SECURITY;
+ALTER TABLE questions ENABLE ROW LEVEL SECURITY;
+
+-- Profiles policies
+DROP POLICY IF EXISTS "Profiles viewable by everyone" ON profiles;
+CREATE POLICY "Profiles viewable by everyone"
+  ON profiles FOR SELECT
+  USING (true);
+
+DROP POLICY IF EXISTS "Users can update own profile" ON profiles;
+CREATE POLICY "Users can update own profile"
+  ON profiles FOR UPDATE
+  USING (auth.uid() = id);
+
+DROP POLICY IF EXISTS "Users can insert own profile" ON profiles;
+CREATE POLICY "Users can insert own profile"
+  ON profiles FOR INSERT
+  WITH CHECK (auth.uid() = id);
+
+-- Game results policies
+DROP POLICY IF EXISTS "Game results viewable by everyone" ON game_results;
+CREATE POLICY "Game results viewable by everyone"
+  ON game_results FOR SELECT
+  USING (true);
+
+DROP POLICY IF EXISTS "Users can insert own game results" ON game_results;
+CREATE POLICY "Users can insert own game results"
+  ON game_results FOR INSERT
+  WITH CHECK (auth.uid() = user_id);
+
+-- Questions policies
+DROP POLICY IF EXISTS "Verified questions viewable by everyone" ON questions;
+CREATE POLICY "Verified questions viewable by everyone"
+  ON questions FOR SELECT
+  USING (verified = true);
+
+-- ============================================
+-- 9. SEED DATA - SAMPLE QUESTIONS
+-- ============================================
+
+-- Clear existing sample questions (optional)
+-- DELETE FROM questions WHERE source = 'sample';
+
+-- Insert 10 sample questions (5 Matematika, 5 Bahasa Indonesia)
+INSERT INTO questions (category, subcategory, difficulty, question, options, correct_answer, explanation, source, verified) VALUES
+
+-- Matematika #1
+('matematika', 'Aljabar', 'easy',
+'Jika 2x + 5 = 13, maka nilai x adalah...',
+'[
+  {"label": "A", "text": "3"},
+  {"label": "B", "text": "4"},
+  {"label": "C", "text": "5"},
+  {"label": "D", "text": "6"},
+  {"label": "E", "text": "7"}
+]'::jsonb,
+'B',
+'2x + 5 = 13, maka 2x = 13 - 5 = 8, sehingga x = 8 / 2 = 4',
+'sample',
+true),
+
+-- Matematika #2
+('matematika', 'Geometri', 'medium',
+'Luas lingkaran dengan diameter 14 cm adalah... (π = 22/7)',
+'[
+  {"label": "A", "text": "154 cm²"},
+  {"label": "B", "text": "308 cm²"},
+  {"label": "C", "text": "616 cm²"},
+  {"label": "D", "text": "44 cm²"},
+  {"label": "E", "text": "88 cm²"}
+]'::jsonb,
+'A',
+'Luas = π × r² = 22/7 × 7² = 22/7 × 49 = 154 cm²',
+'sample',
+true),
+
+-- Matematika #3
+('matematika', 'Aljabar', 'medium',
+'Hasil dari (x + 3)(x - 3) adalah...',
+'[
+  {"label": "A", "text": "x² - 9"},
+  {"label": "B", "text": "x² + 9"},
+  {"label": "C", "text": "x² - 6"},
+  {"label": "D", "text": "x² + 6"},
+  {"label": "E", "text": "2x"}
+]'::jsonb,
+'A',
+'Menggunakan rumus (a + b)(a - b) = a² - b², maka (x + 3)(x - 3) = x² - 9',
+'sample',
+true),
+
+-- Matematika #4
+('matematika', 'Aritmetika', 'easy',
+'Jika rata-rata dari 5 angka adalah 20, maka jumlah kelima angka tersebut adalah...',
+'[
+  {"label": "A", "text": "80"},
+  {"label": "B", "text": "100"},
+  {"label": "C", "text": "120"},
+  {"label": "D", "text": "140"},
+  {"label": "E", "text": "25"}
+]'::jsonb,
+'B',
+'Rata-rata = Jumlah / Banyak data. Maka Jumlah = Rata-rata × Banyak data = 20 × 5 = 100',
+'sample',
+true),
+
+-- Matematika #5
+('matematika', 'Aljabar', 'hard',
+'Jika f(x) = 2x² - 3x + 1, maka f(2) adalah...',
+'[
+  {"label": "A", "text": "3"},
+  {"label": "B", "text": "5"},
+  {"label": "C", "text": "7"},
+  {"label": "D", "text": "9"},
+  {"label": "E", "text": "11"}
+]'::jsonb,
+'A',
+'f(2) = 2(2)² - 3(2) + 1 = 2(4) - 6 + 1 = 8 - 6 + 1 = 3',
+'sample',
+true),
+
+-- Bahasa Indonesia #1
+('bahasa-indonesia', 'Tata Bahasa', 'easy',
+'Kalimat yang menggunakan kata baku adalah...',
+'[
+  {"label": "A", "text": "Saya tidak tau jawabannya"},
+  {"label": "B", "text": "Saya tidak tahu jawabannya"},
+  {"label": "C", "text": "Aku gak tau jawabannya"},
+  {"label": "D", "text": "Gue nggak tau jawabannya"},
+  {"label": "E", "text": "Saya gak tahu jawabannya"}
+]'::jsonb,
+'B',
+'Kata "tahu" adalah kata baku, bukan "tau". Pilihan B menggunakan bahasa baku yang benar.',
+'sample',
+true),
+
+-- Bahasa Indonesia #2
+('bahasa-indonesia', 'Ejaan', 'medium',
+'Penulisan kata yang benar adalah...',
+'[
+  {"label": "A", "text": "mengkaji"},
+  {"label": "B", "text": "meng-kaji"},
+  {"label": "C", "text": "meng kaji"},
+  {"label": "D", "text": "me ngkaji"},
+  {"label": "E", "text": "me-ngkaji"}
+]'::jsonb,
+'A',
+'Awalan "meng-" disambung dengan kata dasar tanpa tanda hubung. Penulisan yang benar adalah "mengkaji".',
+'sample',
+true),
+
+-- Bahasa Indonesia #3
+('bahasa-indonesia', 'Tata Bahasa', 'easy',
+'Kalimat yang menggunakan imbuhan yang tepat adalah...',
+'[
+  {"label": "A", "text": "Dia memukuli temannya"},
+  {"label": "B", "text": "Dia memukulin temannya"},
+  {"label": "C", "text": "Dia pukuli temannya"},
+  {"label": "D", "text": "Dia mukulin temannya"},
+  {"label": "E", "text": "Dia mukuli temannya"}
+]'::jsonb,
+'A',
+'Imbuhan yang tepat adalah "me-" + "pukul" + "-i" = "memukuli". Bentuk lain tidak baku.',
+'sample',
+true),
+
+-- Bahasa Indonesia #4
+('bahasa-indonesia', 'Pemahaman Bacaan', 'medium',
+'Ide pokok biasanya terletak pada...',
+'[
+  {"label": "A", "text": "Akhir paragraf"},
+  {"label": "B", "text": "Awal atau akhir paragraf"},
+  {"label": "C", "text": "Tengah paragraf"},
+  {"label": "D", "text": "Seluruh paragraf"},
+  {"label": "E", "text": "Judul bacaan"}
+]'::jsonb,
+'B',
+'Ide pokok atau kalimat utama biasanya terletak di awal paragraf (deduktif) atau di akhir paragraf (induktif).',
+'sample',
+true),
+
+-- Bahasa Indonesia #5
+('bahasa-indonesia', 'Tata Bahasa', 'hard',
+'Kalimat majemuk bertingkat ditandai dengan...',
+'[
+  {"label": "A", "text": "Konjungsi koordinatif"},
+  {"label": "B", "text": "Konjungsi subordinatif"},
+  {"label": "C", "text": "Konjungsi korelatif"},
+  {"label": "D", "text": "Tidak ada konjungsi"},
+  {"label": "E", "text": "Kata penghubung antar kalimat"}
+]'::jsonb,
+'B',
+'Kalimat majemuk bertingkat menggunakan konjungsi subordinatif seperti "karena", "jika", "meskipun", dll.',
+'sample',
+true);
+
+-- ============================================
+-- VERIFICATION
+-- ============================================
+
+-- Show table counts
+SELECT 'profiles' as table_name, COUNT(*) as count FROM profiles
+UNION ALL
+SELECT 'questions', COUNT(*) FROM questions
+UNION ALL
+SELECT 'game_results', COUNT(*) FROM game_results;
+
+-- Show sample questions
+SELECT id, category, difficulty, LEFT(question, 50) as question_preview, verified
+FROM questions
+ORDER BY created_at DESC
+LIMIT 5;
+
+COMMENT ON TABLE profiles IS 'User profiles with game statistics';
+COMMENT ON TABLE questions IS 'Questions bank for UTBK simulation';
+COMMENT ON TABLE game_results IS 'Individual game session results';
+COMMENT ON MATERIALIZED VIEW global_leaderboard IS 'Top 100 players ranked by best score';

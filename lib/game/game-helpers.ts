@@ -1,0 +1,195 @@
+import { supabase } from '@/lib/supabase/client';
+
+// Types
+export interface Question {
+  id: string;
+  category: string;
+  subcategory: string | null;
+  difficulty: string;
+  question: string;
+  options: { label: string; text: string }[];
+  correct_answer: string;
+  explanation: string | null;
+  source: string;
+  verified: boolean;
+}
+
+export interface GameResult {
+  user_id: string;
+  score: number;
+  correct_answers: number;
+  wrong_answers: number;
+  total_questions: number;
+  time_spent: number;
+  category?: string;
+  difficulty?: string;
+}
+
+/**
+ * Fetch random verified questions from Supabase
+ * @param limit - Number of questions to fetch (default: 10)
+ * @param category - Filter by category (optional)
+ * @param difficulty - Filter by difficulty (optional)
+ */
+export async function fetchQuestions(
+  limit: number = 10,
+  category?: string,
+  difficulty?: string
+): Promise<{ data: Question[] | null; error: any }> {
+  try {
+    let query = supabase
+      .from('questions')
+      .select('*')
+      .eq('verified', true);
+
+    if (category) {
+      query = query.eq('category', category);
+    }
+
+    if (difficulty) {
+      query = query.eq('difficulty', difficulty);
+    }
+
+    // Get random questions by ordering by random and limiting
+    const { data, error } = await query
+      .order('created_at', { ascending: false })
+      .limit(limit);
+
+    if (error) {
+      console.error('Error fetching questions:', error);
+      return { data: null, error };
+    }
+
+    // Shuffle questions for randomness
+    const shuffled = data?.sort(() => Math.random() - 0.5) || [];
+
+    return { data: shuffled, error: null };
+  } catch (error) {
+    console.error('Fetch questions error:', error);
+    return { data: null, error };
+  }
+}
+
+/**
+ * Save game result to Supabase
+ * Automatically updates profile stats via trigger
+ */
+export async function saveGameResult(
+  result: GameResult
+): Promise<{ data: any; error: any }> {
+  try {
+    const { data, error } = await supabase
+      .from('game_results')
+      .insert([result])
+      .select()
+      .single();
+
+    if (error) {
+      console.error('❌ Error saving game result:', {
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        code: error.code,
+      });
+      return { data: null, error };
+    }
+
+    console.log('✅ Game result saved successfully:', data);
+    return { data, error: null };
+  } catch (error) {
+    console.error('❌ Save game result exception:', error);
+    return { data: null, error };
+  }
+}
+
+/**
+ * Get user's game history
+ */
+export async function getUserGameHistory(
+  userId: string,
+  limit: number = 10
+): Promise<{ data: any[] | null; error: any }> {
+  try {
+    const { data, error } = await supabase
+      .from('game_results')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(limit);
+
+    if (error) {
+      console.error('Error fetching game history:', error);
+      return { data: null, error };
+    }
+
+    return { data, error: null };
+  } catch (error) {
+    console.error('Get game history error:', error);
+    return { data: null, error };
+  }
+}
+
+/**
+ * Get user's best score
+ */
+export async function getUserBestScore(
+  userId: string
+): Promise<{ bestScore: number; error: any }> {
+  try {
+    const { data, error } = await supabase
+      .from('game_results')
+      .select('score')
+      .eq('user_id', userId)
+      .order('score', { ascending: false })
+      .limit(1)
+      .single();
+
+    if (error) {
+      // No games played yet
+      if (error.code === 'PGRST116') {
+        return { bestScore: 0, error: null };
+      }
+      console.error('Error fetching best score:', error);
+      return { bestScore: 0, error };
+    }
+
+    return { bestScore: data?.score || 0, error: null };
+  } catch (error) {
+    console.error('Get best score error:', error);
+    return { bestScore: 0, error };
+  }
+}
+
+/**
+ * Update question usage stats
+ */
+export async function updateQuestionUsage(
+  questionId: string,
+  isCorrect: boolean
+): Promise<void> {
+  try {
+    // Get current stats
+    const { data: question } = await supabase
+      .from('questions')
+      .select('usage_count, correct_rate')
+      .eq('id', questionId)
+      .single();
+
+    if (!question) return;
+
+    const newUsageCount = (question.usage_count || 0) + 1;
+    const currentCorrect = (question.correct_rate || 0) * (question.usage_count || 0);
+    const newCorrectRate = (currentCorrect + (isCorrect ? 1 : 0)) / newUsageCount;
+
+    // Update stats
+    await supabase
+      .from('questions')
+      .update({
+        usage_count: newUsageCount,
+        correct_rate: newCorrectRate,
+      })
+      .eq('id', questionId);
+  } catch (error) {
+    console.error('Error updating question usage:', error);
+  }
+}

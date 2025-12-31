@@ -1,31 +1,59 @@
-
 'use client';
 
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import Card from '@/components/Card';
-import ButtonPrimary from '@/components/ButtonPrimary';
+import { signUpAction } from '@/lib/auth/auth-actions';
+import { DEV_MODE } from '@/lib/auth/auth-helpers';
 
 export default function RegisterPage() {
   const router = useRouter();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [username, setUsername] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Static UI - no real registration
-    console.log('Registration attempt:', { name, email, password });
-    alert('Pendaftaran berhasil! (Demo only)');
-    
-    // Simpan status login ke localStorage
-    localStorage.setItem('isLoggedIn', 'true');
-    localStorage.setItem('userName', name || email.split('@')[0]);
-    localStorage.setItem('userEmail', email);
-    
-    // Redirect ke dashboard (halaman utama)
-    router.push('/');
+    setIsLoading(true);
+    setError('');
+
+    try {
+      // In dev mode, skip registration
+      if (DEV_MODE) {
+        console.log('🔧 DEV MODE: Skipping registration');
+        router.push('/');
+        return;
+      }
+
+      // Generate username from name or email if not provided
+      const finalUsername = username || name.toLowerCase().replace(/\s+/g, '') || email.split('@')[0];
+
+      const { user, error: authError } = await signUpAction(
+        email,
+        password,
+        finalUsername,
+        name
+      );
+
+      if (authError) {
+        setError(authError);
+        setIsLoading(false);
+        return;
+      }
+
+      if (user) {
+        // Success - redirect to home
+        alert('Pendaftaran berhasil! Silakan login.');
+        router.push('/login');
+      }
+    } catch (err) {
+      console.error('Registration error:', err);
+      setError('Terjadi kesalahan. Silakan coba lagi.');
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -54,6 +82,13 @@ export default function RegisterPage() {
 
       <div className="relative z-10 flex min-h-screen items-center justify-center">
         <div className="w-full max-w-md animate-scale-in">
+          {/* Dev Mode Badge */}
+          {DEV_MODE && (
+            <div className="mb-4 rounded-lg bg-yellow-500/20 border border-yellow-500/50 p-3 text-center text-yellow-800 backdrop-blur-sm">
+              🔧 <strong>DEV MODE</strong> - Auth disabled
+            </div>
+          )}
+
           {/* Glowing Card */}
           <div className="rounded-3xl bg-white/20 p-1 backdrop-blur-xl shadow-2xl">
             <div className="rounded-3xl bg-white/95 p-8 backdrop-blur-xl">
@@ -71,6 +106,13 @@ export default function RegisterPage() {
                 </h1>
                 <p className="text-[#E2852E] font-medium">Mulai petualangan belajarmu sekarang</p>
               </div>
+
+              {/* Error Message */}
+              {error && (
+                <div className="mb-4 rounded-xl bg-red-500/20 border border-red-500 p-3 text-red-700 text-sm">
+                  ⚠️ {error}
+                </div>
+              )}
 
               {/* Form */}
               <form onSubmit={handleSubmit} className="space-y-5">
@@ -123,11 +165,21 @@ export default function RegisterPage() {
 
                 <button
                   type="submit"
-                  className="group relative w-full overflow-hidden rounded-xl bg-gradient-to-r from-[#E2852E] to-[#F5C857] px-6 py-4 font-bold text-white shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-[#E2852E]/50 active:scale-95"
+                  disabled={isLoading}
+                  className="group relative w-full overflow-hidden rounded-xl bg-gradient-to-r from-[#E2852E] to-[#F5C857] px-6 py-4 font-bold text-white shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-[#E2852E]/50 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                 >
                   <span className="relative z-10 flex items-center justify-center gap-2 text-lg">
-                    <span className="transition-transform duration-300 group-hover:rotate-12">🎉</span>
-                    <span className="transition-transform duration-300 group-hover:translate-x-1">Daftar Sekarang</span>
+                    {isLoading ? (
+                      <>
+                        <span className="animate-spin">⏳</span>
+                        <span>Memproses...</span>
+                      </>
+                    ) : (
+                      <>
+                        <span className="transition-transform duration-300 group-hover:rotate-12">🎉</span>
+                        <span className="transition-transform duration-300 group-hover:translate-x-1">Daftar Sekarang</span>
+                      </>
+                    )}
                   </span>
                 </button>
               </form>
