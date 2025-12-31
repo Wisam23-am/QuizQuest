@@ -12,7 +12,7 @@ export default function Footer() {
         </div>
         <p className="text-slate-400 mb-6">Platform pembelajaran interaktif untuk persiapan UTBK terbaik</p>
         <div className="border-t border-slate-800 pt-6">
-          <p className="text-slate-500 text-sm">© 2025 Game Simulasi UTBK. All rights reserved.</p>
+          <p className="text-slate-500 text-sm">© 2025 Game Simulasi UTBK By PENS X SMAPA. All rights reserved.</p>
         </div>
       </div>
     </footer>

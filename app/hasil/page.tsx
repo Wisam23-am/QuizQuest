@@ -3,6 +3,7 @@
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowRight, Home, RotateCcw } from 'lucide-react';
+import LeaderboardCard from '@/components/LeaderboardCard';
 
 export default function ResultPage() {
   const searchParams = useSearchParams();
@@ -158,6 +159,11 @@ export default function ResultPage() {
                 ✨ Setiap latihan membawamu lebih dekat ke kesuksesan UTBK
               </p>
             </div>
+          </div>
+
+          {/* Leaderboard Section */}
+          <div className="mt-6 animate-slide-up" style={{ animationDelay: '0.3s' }}>
+            <LeaderboardCard compact />
           </div>
         </div>
       </div>

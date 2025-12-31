@@ -183,24 +183,21 @@ export default function GamePage() {
       </div>
 
       {/* Question Card */}
-      
+      <div className="relative z-10 mx-auto max-w-5xl">
         <div className="rounded-3xl bg-[#F9F7F7]/20 p-1 backdrop-blur-xl border border-[#3F72AF]/30 shadow-2xl shadow-[#3F72AF]/20">
-          <div className="rounded-3xl bg-[#F9F7F7]/95 
-                          p-4 sm:p-6 md:p-8 max-h-[99vh] 
-                          ">
-                              {/* Question Number & Progress */}
-                              <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-
-                                <span className="rounded-full bg-gradient-to-r from-[#3F72AF] to-[#112D4E] px-5 py-2 text-sm font-bold text-white shadow-lg">
-                                  🎯 Soal {currentQuestionIndex + 1} dari {questions.length}
-                                </span>
-                                <div className="flex-1 ml-6 h-3 overflow-hidden rounded-full bg-[#DBE2EF] border border-[#3F72AF]/30">
-                                  <div
-                                    className="h-full bg-gradient-to-r from-[#3F72AF] to-[#112D4E] transition-all duration-500 shadow-lg shadow-[#3F72AF]/50"
-                                    style={{ width: `${((currentQuestionIndex + 1) / questions.length) * 100}%` }}
-                                  />
-                                </div>
-                              </div>
+          <div className="rounded-3xl bg-[#F9F7F7]/95 p-4 sm:p-6 md:p-8">
+            {/* Question Number & Progress */}
+            <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <span className="rounded-full bg-gradient-to-r from-[#3F72AF] to-[#112D4E] px-5 py-2 text-sm font-bold text-white shadow-lg">
+                🎯 Soal {currentQuestionIndex + 1} dari {questions.length}
+              </span>
+              <div className="flex-1 sm:ml-6 h-3 overflow-hidden rounded-full bg-[#DBE2EF] border border-[#3F72AF]/30">
+                <div
+                  className="h-full bg-gradient-to-r from-[#3F72AF] to-[#112D4E] transition-all duration-500 shadow-lg shadow-[#3F72AF]/50"
+                  style={{ width: `${((currentQuestionIndex + 1) / questions.length) * 100}%` }}
+                />
+              </div>
+            </div>
 
             {/* Question Text */}
             <div className="mb-8 rounded-2xl bg-gradient-to-r from-[#DBE2EF]/40 to-[#3F72AF]/10 p-6 backdrop-blur-sm border border-[#3F72AF]/30">
@@ -210,30 +207,35 @@ export default function GamePage() {
             {/* Options */}
             <div className="mb-6 space-y-4">
               {currentQuestion.options.map((option) => {
-              const status =
-                    isAnswered
-                      ? option.label === currentQuestion.correctAnswer
-                        ? 'correct'
-                        : option.label === selectedAnswer
-                        ? 'wrong'
-                        : 'disabled'
+                const status =
+                  isAnswered
+                    ? option.label === currentQuestion.correctAnswer
+                      ? 'correct'
                       : option.label === selectedAnswer
-                      ? 'selected'
-                      : 'idle';
-              const isCorrect = status === 'correct';
-              const isWrong = status === 'wrong';
-              const isSelected = status === 'selected'; 
+                      ? 'wrong'
+                      : 'disabled'
+                    : option.label === selectedAnswer
+                    ? 'selected'
+                    : 'idle';
+                const isCorrect = status === 'correct';
+                const isWrong = status === 'wrong';
+                const isSelected = status === 'selected'; 
                 return (
                   <button
                     key={option.label}
                     onClick={() => handleAnswerSelect(option.label)}
-                   className={`group w-full rounded-2xl p-4 sm:p-5
-                              transition-all duration-300 border-2
-                              ${status === 'correct' && 'border-green-500 bg-green-200'}
-                              ${status === 'wrong' && 'border-red-500 bg-red-200'}
-                              ${status === 'selected' && 'border-[#3F72AF] bg-[#DBE2EF]'}
-                              ${status === 'idle' && 'border-[#DBE2EF] hover:border-[#3F72AF]/50'}
-                              `}
+                    disabled={isAnswered}
+                    className={`group w-full rounded-2xl p-4 sm:p-5 transition-all duration-300 border-2 ${
+                      status === 'correct' && 'border-green-500 bg-green-50'
+                    } ${
+                      status === 'wrong' && 'border-red-500 bg-red-50'
+                    } ${
+                      status === 'selected' && 'border-[#3F72AF] bg-[#DBE2EF]'
+                    } ${
+                      status === 'idle' && 'border-[#DBE2EF] hover:border-[#3F72AF]/50 hover:bg-[#DBE2EF]/30'
+                    } ${
+                      isAnswered && status === 'disabled' && 'opacity-50 cursor-not-allowed'
+                    }`}
                   >
                     <div className="flex items-center gap-4">
                       <span className={`flex h-12 w-12 items-center justify-center rounded-xl text-xl font-bold transition-all ${
@@ -247,7 +249,7 @@ export default function GamePage() {
                       }`}>
                         {option.label}
                       </span>
-                      <span className={`flex-1 text-lg transition-colors ${
+                      <span className={`flex-1 text-left text-lg transition-colors ${
                         isCorrect || isWrong || isSelected ? 'text-[#112D4E] font-semibold' : 'text-[#3F72AF] group-hover:text-[#112D4E]'
                       }`}>
                         {option.text}
@@ -292,18 +294,20 @@ export default function GamePage() {
             {isAnswered && (
               <div className={`animate-scale-in rounded-2xl p-6 text-center backdrop-blur-sm border-2 ${
                 selectedAnswer === currentQuestion.correctAnswer
-                  ? 'border-green-500 bg-gradient-to-r from-green-200 to-emerald-200'
-                  : 'border-red-500 bg-gradient-to-r from-red-200 to-pink-200'
+                  ? 'border-green-500 bg-gradient-to-r from-green-50 to-emerald-50'
+                  : 'border-red-500 bg-gradient-to-r from-red-50 to-pink-50'
               }`}>
                 <p className="mb-2 text-4xl animate-bounce">
                   {selectedAnswer === currentQuestion.correctAnswer ? '🎉' : '💔'}
                 </p>
-                <p className="mb-2 text-2xl font-bold text-white">
+                <p className={`mb-2 text-2xl font-bold ${
+                  selectedAnswer === currentQuestion.correctAnswer ? 'text-green-600' : 'text-red-600'
+                }`}>
                   {selectedAnswer === currentQuestion.correctAnswer ? 'Luar Biasa!' : 'Ups, Salah!'}
                 </p>
                 {selectedAnswer !== currentQuestion.correctAnswer && (
-                  <p className="text-lg text-gray-300">
-                    Jawaban yang benar: <span className="font-bold text-green-400">{currentQuestion.correctAnswer}</span>
+                  <p className="text-lg text-[#3F72AF]">
+                    Jawaban yang benar: <span className="font-bold text-green-600">{currentQuestion.correctAnswer}</span>
                   </p>
                 )}
               </div>
@@ -311,6 +315,6 @@ export default function GamePage() {
           </div>
         </div>
       </div>
-    
+    </div>
   );
 }

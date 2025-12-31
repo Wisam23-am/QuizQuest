@@ -56,30 +56,30 @@ export default function ProfilePage() {
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50">
       <Navbar />
 
-      <div className="max-w-4xl mx-auto px-4 py-16">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8 sm:py-16">
         {/* Header */}
-        <div className="text-center mb-12 animate-slide-up">
-          <h1 className="text-4xl font-extrabold text-slate-900 mb-4">
+        <div className="text-center mb-8 sm:mb-12 animate-slide-up">
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 mb-3 sm:mb-4">
             Profil <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">Pengguna</span>
           </h1>
-          <p className="text-lg text-slate-600">Kelola informasi akun Anda</p>
+          <p className="text-base sm:text-lg text-slate-600">Kelola informasi akun Anda</p>
         </div>
 
         {/* Profile Card */}
         <div className="bg-white rounded-3xl shadow-2xl border border-gray-200 overflow-hidden animate-scale-in">
           {/* Header dengan Avatar */}
-          <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-8 text-center">
+          <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-6 sm:p-8 text-center">
             <div className="inline-block">
-              <div className="w-32 h-32 rounded-full bg-white flex items-center justify-center text-blue-600 font-bold text-5xl shadow-xl">
+              <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-white flex items-center justify-center text-blue-600 font-bold text-4xl sm:text-5xl shadow-xl">
                 {getInitials(userName)}
               </div>
             </div>
-            <h2 className="mt-4 text-3xl font-bold text-white">{userName}</h2>
-            <p className="mt-2 text-blue-100">{userEmail}</p>
+            <h2 className="mt-4 text-2xl sm:text-3xl font-bold text-white">{userName}</h2>
+            <p className="mt-2 text-sm sm:text-base text-blue-100 break-all px-4">{userEmail}</p>
           </div>
 
           {/* Profile Info */}
-          <div className="p-8 space-y-6">
+          <div className="p-4 sm:p-8 space-y-6">
             {/* Nama */}
             <div className="group">
               <label className="block text-sm font-semibold text-slate-700 mb-2">Nama Lengkap</label>
@@ -108,7 +108,7 @@ export default function ProfilePage() {
             </div>
 
             {/* Statistik */}
-            <div className="grid grid-cols-3 gap-4 mt-8">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mt-8">
               <div className="bg-gradient-to-br from-blue-50 to-white p-4 rounded-xl border border-blue-100 text-center">
                 <div className="text-3xl font-bold text-blue-600">0</div>
                 <div className="text-sm text-slate-600 mt-1">Latihan</div>
@@ -124,12 +124,12 @@ export default function ProfilePage() {
             </div>
 
             {/* Action Buttons */}
-            <div className="flex gap-4 mt-8 pt-6 border-t border-gray-200">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mt-8 pt-6 border-t border-gray-200">
               {isEditing ? (
                 <>
                   <button
                     onClick={handleSaveProfile}
-                    className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-semibold hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 shadow-md hover:shadow-lg hover:scale-105 active:scale-95"
+                    className="flex-1 px-4 sm:px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl text-sm sm:text-base font-semibold hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 shadow-md hover:shadow-lg hover:scale-105 active:scale-95"
                   >
                     💾 Simpan Perubahan
                   </button>
@@ -138,7 +138,7 @@ export default function ProfilePage() {
                       setEditedName(userName);
                       setIsEditing(false);
                     }}
-                    className="flex-1 px-6 py-3 bg-gray-200 text-slate-700 rounded-xl font-semibold hover:bg-gray-300 transition-all duration-300 hover:scale-105 active:scale-95"
+                    className="flex-1 px-4 sm:px-6 py-3 bg-gray-200 text-slate-700 rounded-xl text-sm sm:text-base font-semibold hover:bg-gray-300 transition-all duration-300 hover:scale-105 active:scale-95"
                   >
                     ❌ Batal
                   </button>
@@ -146,7 +146,7 @@ export default function ProfilePage() {
               ) : (
                 <button
                   onClick={() => setIsEditing(true)}
-                  className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-semibold hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 shadow-md hover:shadow-lg hover:scale-105 active:scale-95"
+                  className="flex-1 px-4 sm:px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl text-sm sm:text-base font-semibold hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 shadow-md hover:shadow-lg hover:scale-105 active:scale-95"
                 >
                   ✏️ Edit Profil
                 </button>
@@ -154,14 +154,14 @@ export default function ProfilePage() {
             </div>
 
             {/* Quick Links */}
-            <div className="grid grid-cols-2 gap-4 mt-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mt-6">
               <Link href="/game">
-                <button className="w-full px-6 py-3 bg-white border-2 border-blue-600 text-blue-600 rounded-xl font-semibold hover:bg-blue-50 transition-all duration-300 hover:scale-105 active:scale-95">
+                <button className="w-full px-4 sm:px-6 py-3 bg-white border-2 border-blue-600 text-blue-600 rounded-xl text-sm sm:text-base font-semibold hover:bg-blue-50 transition-all duration-300 hover:scale-105 active:scale-95">
                   🎮 Mulai Latihan
                 </button>
               </Link>
               <Link href="/leaderboard">
-                <button className="w-full px-6 py-3 bg-white border-2 border-indigo-600 text-indigo-600 rounded-xl font-semibold hover:bg-indigo-50 transition-all duration-300 hover:scale-105 active:scale-95">
+                <button className="w-full px-4 sm:px-6 py-3 bg-white border-2 border-indigo-600 text-indigo-600 rounded-xl text-sm sm:text-base font-semibold hover:bg-indigo-50 transition-all duration-300 hover:scale-105 active:scale-95">
                   🏆 Leaderboard
                 </button>
               </Link>
@@ -170,9 +170,9 @@ export default function ProfilePage() {
         </div>
 
         {/* Back Button */}
-        <div className="mt-8">
+        <div className="mt-6 sm:mt-8">
           <Link href="/">
-            <button className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-all duration-300 shadow-md hover:shadow-lg hover:scale-105 active:scale-95">
+            <button className="flex items-center justify-center gap-2 w-full sm:w-auto px-4 sm:px-6 py-3 bg-blue-600 text-white rounded-xl text-sm sm:text-base font-semibold hover:bg-blue-700 transition-all duration-300 shadow-md hover:shadow-lg hover:scale-105 active:scale-95">
               <svg 
                 className="w-5 h-5" 
                 fill="none" 

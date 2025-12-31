@@ -44,7 +44,7 @@ export default function Navbar() {
             <div className="w-10 h-10 rounded-lg bg-blue-600 flex items-center justify-center">
               <img src="/logo.png" alt="Logo" className="w-8 h-8 object-contain" />
             </div>
-            <span className="text-xl font-bold text-slate-800">UTBK Simulator</span>
+            <span className="text-xl font-bold text-slate-800">PENS X SMAPA</span>
           </Link>
           
           {/* Desktop Menu */}

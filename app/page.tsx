@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import LeaderboardCard from '@/components/LeaderboardCard';
 
 export default function Home() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -35,10 +36,13 @@ export default function Home() {
               <h1 className="text-5xl md:text-6xl font-extrabold text-slate-900 mb-6 leading-tight">
                 Persiapan <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">UTBK</span> yang Lebih Seru!
               </h1>
+              <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900 mb-6 leading-tight">
+                Dengan <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">Sensasi</span> Game!
+              </h2>
               <p className="text-xl text-slate-600 mb-8 leading-relaxed">
                 Simulasi ujian dengan timer real-time, sistem scoring otomatis, dan pelacakan progres yang akurat. Raih skor impianmu dengan latihan yang lebih efektif!
               </p>
-              
+
               {/* CTA Buttons */}
               <div className="flex flex-col sm:flex-row gap-4">
                 <Link href="/game" className="group">
@@ -159,6 +163,20 @@ export default function Home() {
               <div className="text-xl text-blue-100">Tingkat Kepuasan</div>
               <div className="mt-4 text-sm text-blue-200">Rating dari pengguna kami</div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Leaderboard Section */}
+      <section className="py-16 sm:py-20 px-4 bg-gradient-to-br from-gray-50 to-blue-50">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-10 sm:mb-12">
+            <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">🏆 Top Performers</h2>
+            <p className="text-lg sm:text-xl text-slate-600">Lihat siapa yang memimpin peringkat minggu ini!</p>
+          </div>
+
+          <div className="max-w-2xl mx-auto">
+            <LeaderboardCard />
           </div>
         </div>
       </section>
