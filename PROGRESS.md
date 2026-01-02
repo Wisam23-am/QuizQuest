@@ -18,6 +18,7 @@
 - ✅ Footer component (dengan padding untuk dock)
 - ✅ Dock Navigation (macOS style dengan magnification)
 - ✅ LeaderboardCard component (top 5)
+- ✅ FireIcon component (animated WebP with variants)
 
 #### 2. **UI/UX**
 

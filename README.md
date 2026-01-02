@@ -156,7 +156,9 @@ UTBK-game-simulation/
 │   ├── ButtonPrimary.tsx   # Primary button
 │   ├── QuestionOption.tsx  # Question option button
 │   ├── LeaderboardCard.tsx # Leaderboard display
-│   └── LifeIndicator.tsx   # Life/health indicator
+│   ├── LifeIndicator.tsx   # Life/health indicator
+│   ├── FireIcon.tsx        # Animated fire icon (WebP)
+│   └── Dock.tsx            # macOS-style dock navigation
 ├── lib/                     # Utility functions & helpers ✅
 │   ├── auth/               # Authentication helpers
 │   │   ├── auth-actions.ts # Server actions (signIn, signUp)
@@ -172,7 +174,9 @@ UTBK-game-simulation/
 │   └── profile/            # Profile helpers ✅ NEW
 │       └── profile-helpers.ts # User stats & game history
 ├── public/                  # Static assets
-│   └── logo.png            # App logo
+│   ├── logo.png            # App logo
+│   ├── fire-animation.webp # Animated fire for streak indicator
+│   └── team/               # Team member assets
 ├── supabase-schema.sql     # Complete database schema ✅ NEW
 ├── DATABASE_SETUP.md       # Setup instructions ✅ NEW
 ├── TROUBLESHOOTING.md      # Common issues guide ✅ NEW
@@ -414,6 +418,15 @@ Button component khusus untuk pilihan jawaban dengan feedback visual.
 ### LifeIndicator
 
 Indikator visual untuk menampilkan sisa nyawa pemain.
+
+### FireIcon
+
+Animated fire icon component untuk streak indicator dengan:
+- WebP animation untuk performa optimal
+- Three variants: default, intense, crazy
+- Dynamic scaling berdasarkan streak level
+- Glow effects dan sparkles untuk active state
+- Particle effects untuk high streak tiers
 
 ### ButtonPrimary
 
