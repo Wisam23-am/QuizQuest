@@ -192,7 +192,16 @@ NEXT_PUBLIC_DEV_MODE=true
   1. Hard refresh browser (Ctrl+Shift+R)
   2. Check if DEV_MODE is false
   3. Verify data in Supabase dashboard
+### "Email confirmation redirects to localhost after deployment"
 
+- **Meaning:** Supabase Site URL still set to localhost
+- **Impact:** Email verification links don't work in production
+- **Fix:**
+  1. Open Supabase Dashboard → Authentication → URL Configuration
+  2. Update **Site URL** to: `https://your-project.vercel.app`
+  3. Add to **Redirect URLs**: `https://your-project.vercel.app/**`
+  4. Keep `http://localhost:3000/**` for local development
+  5. Test registration with new email
 ---
 
 ## Quick Fixes

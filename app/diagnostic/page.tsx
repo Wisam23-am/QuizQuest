@@ -6,6 +6,9 @@ import Dock from '@/components/Dock';
 import { checkDatabaseSetup, getQuestionCount, checkAuth } from '@/lib/game/database-check';
 import { DEV_MODE } from '@/lib/auth/auth-helpers';
 
+// Force dynamic rendering - don't prerender at build time
+export const dynamic = 'force-dynamic';
+
 export default function DiagnosticPage() {
   const [status, setStatus] = useState<any>(null);
   const [loading, setLoading] = useState(true);
