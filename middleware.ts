@@ -6,9 +6,19 @@ export async function middleware(request: NextRequest) {
     request,
   });
 
+  // Check if environment variables are available
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  // If env vars are missing, allow request to pass through
+  if (!supabaseUrl || !supabaseKey) {
+    console.warn('Supabase environment variables not configured');
+    return supabaseResponse;
+  }
+
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    supabaseUrl,
+    supabaseKey,
     {
       cookies: {
         getAll() {
@@ -30,9 +40,13 @@ export async function middleware(request: NextRequest) {
   );
 
   // Refresh session if expired - required for Server Components
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  let user = null;
+  try {
+    const { data } = await supabase.auth.getUser();
+    user = data.user;
+  } catch (error) {
+    console.error('Error getting user in middleware:', error);
+  }
 
   // Check if dev mode is enabled
   const isDevMode = process.env.NEXT_PUBLIC_DEV_MODE === 'true';
