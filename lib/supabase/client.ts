@@ -8,5 +8,19 @@ export const createClient = () => {
   );
 };
 
-// Export singleton instance
-export const supabase = createClient();
+// Lazy-loaded singleton instance to avoid build-time errors
+let supabaseInstance: ReturnType<typeof createClient> | null = null;
+
+export const getSupabaseClient = () => {
+  if (!supabaseInstance) {
+    supabaseInstance = createClient();
+  }
+  return supabaseInstance;
+};
+
+// For backwards compatibility - but use getSupabaseClient() in new code
+export const supabase = new Proxy({} as ReturnType<typeof createClient>, {
+  get(_, prop) {
+    return (getSupabaseClient() as any)[prop];
+  }
+});
