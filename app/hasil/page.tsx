@@ -137,7 +137,7 @@ function ResultContent() {
             </div>
 
             {/* Statistics */}
-            <div className="grid grid-cols-3 gap-4 mb-6">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
               {/* Score */}
               <div className="rounded-2xl bg-gradient-to-br from-[#DBE2EF] to-[#3F72AF]/20 p-6 border border-[#3F72AF]/30 text-center">
                 <div className="text-sm text-[#3F72AF] font-semibold mb-2">
