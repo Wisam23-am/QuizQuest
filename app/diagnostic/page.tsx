@@ -1,20 +1,31 @@
-import { useState, useEffect } from 'react';
-import Link from 'next/link';
-import Dock from '@/components/Dock';
-import { checkDatabaseSetup, getQuestionCount, checkAuth } from '@/lib/game/database-check';
-import { DEV_MODE } from '@/lib/auth/auth-helpers';
+"use client";
 
-// Force dynamic rendering - don't prerender at build time
-export const dynamic = 'force-dynamic';
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import Dock from "@/components/Dock";
+import {
+  checkDatabaseSetup,
+  getQuestionCount,
+  checkAuth,
+} from "@/lib/game/database-check";
+import { DEV_MODE } from "@/lib/auth/auth-helpers";
 
 export default function DiagnosticPage() {
   const [status, setStatus] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [mounted, setMounted] = useState(false);
+
+  // Prevent SSR - only run in browser
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
+    if (!mounted) return;
+    
     async function runDiagnostics() {
       setLoading(true);
-      
+
       const [dbStatus, questionCount, authStatus] = await Promise.all([
         checkDatabaseSetup(),
         getQuestionCount(),
@@ -32,9 +43,9 @@ export default function DiagnosticPage() {
     }
 
     runDiagnostics();
-  }, []);
+  }, [mounted]);
 
-  if (loading) {
+  if (!mounted || loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
@@ -51,8 +62,12 @@ export default function DiagnosticPage() {
         <div className="bg-white rounded-2xl shadow-xl p-6 md:p-8">
           {/* Header */}
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">🔧 System Diagnostics</h1>
-            <p className="text-gray-600">Check database and authentication status</p>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              🔧 System Diagnostics
+            </h1>
+            <p className="text-gray-600">
+              Check database and authentication status
+            </p>
           </div>
 
           {/* Dev Mode Warning */}
@@ -61,8 +76,12 @@ export default function DiagnosticPage() {
               <div className="flex items-center gap-2">
                 <span className="text-2xl">⚠️</span>
                 <div>
-                  <p className="font-bold text-yellow-800">Development Mode Active</p>
-                  <p className="text-sm text-yellow-700">Authentication is disabled</p>
+                  <p className="font-bold text-yellow-800">
+                    Development Mode Active
+                  </p>
+                  <p className="text-sm text-yellow-700">
+                    Authentication is disabled
+                  </p>
                 </div>
               </div>
             </div>
@@ -94,7 +113,11 @@ export default function DiagnosticPage() {
               />
               <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                 <span className="text-gray-700">Question Count:</span>
-                <span className={`font-bold ${status.questionCount > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                <span
+                  className={`font-bold ${
+                    status.questionCount > 0 ? "text-green-600" : "text-red-600"
+                  }`}
+                >
                   {status.questionCount} questions
                 </span>
               </div>
@@ -106,7 +129,9 @@ export default function DiagnosticPage() {
                 <p className="font-bold text-red-800 mb-2">❌ Errors:</p>
                 <ul className="space-y-1">
                   {status.database.errors.map((error: string, i: number) => (
-                    <li key={i} className="text-sm text-red-700">• {error}</li>
+                    <li key={i} className="text-sm text-red-700">
+                      • {error}
+                    </li>
                   ))}
                 </ul>
               </div>
@@ -127,11 +152,15 @@ export default function DiagnosticPage() {
                 <>
                   <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                     <span className="text-gray-700">User ID:</span>
-                    <span className="font-mono text-sm text-gray-600">{status.auth.userId}</span>
+                    <span className="font-mono text-sm text-gray-600">
+                      {status.auth.userId}
+                    </span>
                   </div>
                   <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                     <span className="text-gray-700">Email:</span>
-                    <span className="font-mono text-sm text-gray-600">{status.auth.email}</span>
+                    <span className="font-mono text-sm text-gray-600">
+                      {status.auth.email}
+                    </span>
                   </div>
                 </>
               )}
@@ -141,9 +170,16 @@ export default function DiagnosticPage() {
           {/* Action Required */}
           {!status.database.isReady && (
             <div className="mb-6 p-6 bg-blue-50 border border-blue-200 rounded-xl">
-              <h3 className="text-lg font-bold text-blue-900 mb-3">📋 Action Required</h3>
+              <h3 className="text-lg font-bold text-blue-900 mb-3">
+                📋 Action Required
+              </h3>
               <ol className="space-y-2 text-sm text-blue-800">
-                <li>1. Open <code className="px-2 py-1 bg-blue-100 rounded">supabase-schema.sql</code></li>
+                <li>
+                  1. Open{" "}
+                  <code className="px-2 py-1 bg-blue-100 rounded">
+                    supabase-schema.sql
+                  </code>
+                </li>
                 <li>2. Go to Supabase Dashboard → SQL Editor</li>
                 <li>3. Copy & paste the schema</li>
                 <li>4. Click Run (Ctrl+Enter)</li>
@@ -154,9 +190,12 @@ export default function DiagnosticPage() {
 
           {status.questionCount === 0 && status.database.isReady && (
             <div className="mb-6 p-6 bg-yellow-50 border border-yellow-200 rounded-xl">
-              <h3 className="text-lg font-bold text-yellow-900 mb-3">⚠️ No Questions Found</h3>
+              <h3 className="text-lg font-bold text-yellow-900 mb-3">
+                ⚠️ No Questions Found
+              </h3>
               <p className="text-sm text-yellow-800">
-                Database is set up but no questions are available. Make sure you ran the full schema including the INSERT statements.
+                Database is set up but no questions are available. Make sure you
+                ran the full schema including the INSERT statements.
               </p>
             </div>
           )}
@@ -180,7 +219,11 @@ export default function DiagnosticPage() {
           {/* Documentation */}
           <div className="mt-8 p-4 bg-gray-50 rounded-xl">
             <p className="text-sm text-gray-600">
-              📖 Need help? Check <code className="px-2 py-1 bg-gray-200 rounded">DATABASE_SETUP.md</code> for detailed instructions.
+              📖 Need help? Check{" "}
+              <code className="px-2 py-1 bg-gray-200 rounded">
+                DATABASE_SETUP.md
+              </code>{" "}
+              for detailed instructions.
             </p>
           </div>
         </div>
@@ -195,8 +238,8 @@ export default function DiagnosticPage() {
 function StatusRow({
   label,
   status,
-  successText = 'OK',
-  failText = 'Error',
+  successText = "OK",
+  failText = "Error",
 }: {
   label: string;
   status: boolean;
@@ -208,9 +251,7 @@ function StatusRow({
       <span className="text-gray-700">{label}</span>
       <span
         className={`px-3 py-1 rounded-full text-sm font-bold ${
-          status
-            ? 'bg-green-100 text-green-700'
-            : 'bg-red-100 text-red-700'
+          status ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
         }`}
       >
         {status ? `✅ ${successText}` : `❌ ${failText}`}
