@@ -23,7 +23,7 @@ const teamMembers: TeamMember[] = [
     name: 'Zelcy Wiluarta',
     role: 'UI/UX Designer',
     major: 'D4 Teknik Komputer 24',
-    image: '/team/zelcy-wiluarta.jpg'
+    image: '/team/zelcy-foto.png'
   },
   {
     id: 3,
