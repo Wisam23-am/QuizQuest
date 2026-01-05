@@ -91,8 +91,13 @@ const RegisterPage = () => {
 
       if (signUpError) {
         // Check if email already registered
-        if (signUpError.includes("already registered") || signUpError.includes("already exists")) {
-          setError("Email ini sudah terdaftar! Silakan login atau gunakan email lain.");
+        if (
+          signUpError.includes("already registered") ||
+          signUpError.includes("already exists")
+        ) {
+          setError(
+            "Email ini sudah terdaftar! Silakan login atau gunakan email lain."
+          );
         } else {
           setError(signUpError || "Gagal mendaftar. Silakan coba lagi.");
         }
@@ -101,7 +106,9 @@ const RegisterPage = () => {
       }
 
       // Success - show message and redirect
-      alert("Pendaftaran berhasil! 📧\n\nSilakan cek email Anda untuk verifikasi akun.\nSetelah verifikasi, Anda dapat login menggunakan akun yang telah didaftarkan.\n\nJika tidak ada email, cek folder spam/junk.");
+      alert(
+        "Pendaftaran berhasil! 📧\n\nSilakan cek email Anda untuk verifikasi akun.\nSetelah verifikasi, Anda dapat login menggunakan akun yang telah didaftarkan.\n\nJika tidak ada email, cek folder spam/junk."
+      );
       router.push("/login");
     } catch (err) {
       console.error("Auth error:", err);

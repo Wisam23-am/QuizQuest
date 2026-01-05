@@ -88,10 +88,21 @@ export default function TeamMemberCard({ member, index }: TeamMemberCardProps) {
         )}
 
         {/* Jurusan with icon */}
-        <div className="flex items-center justify-center gap-2 text-gray-600 group-hover:text-gray-800 transition-colors duration-300">
-          <p className="text-sm font-medium">
-            {member.major}
-          </p>
+        <div className="flex flex-col items-center justify-center gap-1 text-gray-600 group-hover:text-gray-800 transition-colors duration-300">
+          {member.major.includes('PSDKU') ? (
+            <>
+              <p className="text-sm font-medium">
+                {member.major.split('PSDKU')[0].trim()}
+              </p>
+              <p className="text-xs font-medium text-gray-500">
+                PSDKU{member.major.split('PSDKU')[1]}
+              </p>
+            </>
+          ) : (
+            <p className="text-sm font-medium">
+              {member.major}
+            </p>
+          )}
         </div>
       </div>
 
