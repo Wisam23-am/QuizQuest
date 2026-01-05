@@ -14,6 +14,45 @@ export default function RegisterPage() {
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [passwordStrength, setPasswordStrength] = useState<{
+    isValid: boolean;
+    hasMinLength: boolean;
+    hasLetter: boolean;
+    hasNumber: boolean;
+    hasSpecialChar: boolean;
+  }>({
+    isValid: false,
+    hasMinLength: false,
+    hasLetter: false,
+    hasNumber: false,
+    hasSpecialChar: false,
+  });
+
+  // Validate password strength
+  const validatePassword = (pwd: string) => {
+    const minLength = pwd.length >= 8;
+    const hasLetter = /[a-zA-Z]/.test(pwd);
+    const hasNumber = /[0-9]/.test(pwd);
+    const hasSpecialChar = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(pwd);
+    const isValid = minLength && hasLetter && hasNumber && hasSpecialChar;
+
+    setPasswordStrength({
+      isValid,
+      hasMinLength: minLength,
+      hasLetter,
+      hasNumber,
+      hasSpecialChar,
+    });
+
+    return isValid;
+  };
+
+  // Handle password change
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newPassword = e.target.value;
+    setPassword(newPassword);
+    validatePassword(newPassword);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,6 +70,13 @@ export default function RegisterPage() {
       // Validate name
       if (!name.trim()) {
         setError("Nama lengkap wajib diisi!");
+        setIsLoading(false);
+        return;
+      }
+
+      // Validate password strength
+      if (!validatePassword(password)) {
+        setError("Password harus memenuhi semua kriteria yang ditentukan!");
         setIsLoading(false);
         return;
       }
@@ -167,15 +213,76 @@ export default function RegisterPage() {
                     type="password"
                     id="password"
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    onChange={handlePasswordChange}
                     className="w-full rounded-xl border-2 border-[#F5C857] bg-[#FFEE91]/30 px-4 py-3 text-[#E2852E] placeholder-[#E2852E]/50 backdrop-blur-sm transition-all duration-300 focus:border-[#E2852E] focus:outline-none focus:ring-4 focus:ring-[#E2852E]/30"
                     placeholder="••••••••"
                     required
-                    minLength={6}
                   />
-                  <p className="mt-1 text-xs text-[#E2852E]/70">
-                    Minimal 6 karakter
-                  </p>
+
+                  {/* Password Strength Indicator */}
+                  {password && (
+                    <div className="mt-3 space-y-2 rounded-lg bg-white/50 p-3 text-xs">
+                      <p className="font-semibold text-[#E2852E] mb-2">
+                        Kriteria Password:
+                      </p>
+                      <div className="space-y-1">
+                        <div
+                          className={`flex items-center gap-2 ${
+                            passwordStrength.hasMinLength
+                              ? "text-green-600"
+                              : "text-gray-500"
+                          }`}
+                        >
+                          <span>
+                            {passwordStrength.hasMinLength ? "✅" : "⭕"}
+                          </span>
+                          <span>Minimal 8 karakter</span>
+                        </div>
+                        <div
+                          className={`flex items-center gap-2 ${
+                            passwordStrength.hasLetter
+                              ? "text-green-600"
+                              : "text-gray-500"
+                          }`}
+                        >
+                          <span>
+                            {passwordStrength.hasLetter ? "✅" : "⭕"}
+                          </span>
+                          <span>Mengandung huruf (a-z, A-Z)</span>
+                        </div>
+                        <div
+                          className={`flex items-center gap-2 ${
+                            passwordStrength.hasNumber
+                              ? "text-green-600"
+                              : "text-gray-500"
+                          }`}
+                        >
+                          <span>
+                            {passwordStrength.hasNumber ? "✅" : "⭕"}
+                          </span>
+                          <span>Mengandung angka (0-9)</span>
+                        </div>
+                        <div
+                          className={`flex items-center gap-2 ${
+                            passwordStrength.hasSpecialChar
+                              ? "text-green-600"
+                              : "text-gray-500"
+                          }`}
+                        >
+                          <span>
+                            {passwordStrength.hasSpecialChar ? "✅" : "⭕"}
+                          </span>
+                          <span>Mengandung karakter khusus (!@#$%^&*)</span>
+                        </div>
+                      </div>
+                      {passwordStrength.isValid && (
+                        <div className="mt-2 flex items-center gap-2 rounded-md bg-green-100 px-2 py-1 text-green-700">
+                          <span>🎉</span>
+                          <span className="font-semibold">Password kuat!</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 <button

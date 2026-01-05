@@ -26,6 +26,9 @@ Platform latihan UTBK (Ujian Tulis Berbasis Komputer) yang inovatif dengan **Gam
 
 - ✅ Supabase Auth with JWT tokens
 - ✅ Enhanced registration form (full name + school + university)
+- ✅ Strong password validation (8+ chars, letters, numbers, special chars)
+- ✅ Real-time password strength indicator
+- ✅ Client-side & server-side password validation
 - ✅ Auto-profile creation on first login
 - ✅ Session management with reduced warnings
 - ✅ Protected routes (game/study require login)
@@ -261,6 +264,12 @@ NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 NEXT_PUBLIC_DEV_MODE=true
 ```
+
+**Note:** When registering, password must meet these requirements:
+- Minimal 8 karakter
+- Mengandung huruf (a-z, A-Z)
+- Mengandung angka (0-9)
+- Mengandung karakter khusus (!@#$%^&*)
 
 ### 4. Setup Database
 

@@ -27,6 +27,27 @@ export async function signUpAction(
 ) {
   const supabase = await createClient();
 
+  // Validate password strength (server-side validation)
+  const passwordRegex = {
+    minLength: password.length >= 8,
+    hasLetter: /[a-zA-Z]/.test(password),
+    hasNumber: /[0-9]/.test(password),
+    hasSpecialChar: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password),
+  };
+
+  if (!passwordRegex.minLength) {
+    return { user: null, error: 'Password harus minimal 8 karakter' };
+  }
+  if (!passwordRegex.hasLetter) {
+    return { user: null, error: 'Password harus mengandung huruf' };
+  }
+  if (!passwordRegex.hasNumber) {
+    return { user: null, error: 'Password harus mengandung angka' };
+  }
+  if (!passwordRegex.hasSpecialChar) {
+    return { user: null, error: 'Password harus mengandung karakter khusus (!@#$%^&*)' };
+  }
+
   // Generate username from full name (lowercase, no spaces)
   const username = fullName.toLowerCase().replace(/\s+/g, '') || email.split('@')[0];
 

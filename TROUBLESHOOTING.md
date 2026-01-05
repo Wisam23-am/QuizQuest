@@ -202,6 +202,33 @@ NEXT_PUBLIC_DEV_MODE=true
   3. Add to **Redirect URLs**: `https://your-project.vercel.app/**`
   4. Keep `http://localhost:3000/**` for local development
   5. Test registration with new email
+
+### "Password doesn't meet requirements"
+
+- **Meaning:** Password validation failed during registration
+- **Impact:** Cannot create account
+- **Fix:**
+  1. Check password requirements:
+     - Minimal 8 karakter
+     - Harus ada huruf (a-z atau A-Z)
+     - Harus ada angka (0-9)
+     - Harus ada karakter khusus (!@#$%^&*)
+  2. Use real-time indicator to see which criteria are missing
+  3. Example valid passwords:
+     - `MyPass123!`
+     - `Parikesit99@`
+     - `Test1234#`
+
+### "Password validation indicator not showing"
+
+- **Meaning:** Real-time validation not working
+- **Impact:** No visual feedback for password strength
+- **Fix:**
+  1. Make sure you're typing in the password field
+  2. Clear browser cache and refresh
+  3. Check browser console for JavaScript errors
+  4. Try a different browser
+
 ---
 
 ## Quick Fixes
