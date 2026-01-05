@@ -74,26 +74,25 @@ export async function signUpAction(
     targetUniversity: targetUniversity || '' 
   });
 
-  const { error: profileError } = await supabase.from('profiles').insert({
+  const { data: profileData, error: profileError } = await supabase.from('profiles').insert({
     id: authData.user.id,
     username,
     full_name: fullName,
     school: school || '',
     target_university: targetUniversity || '',
     avatar_url: '',
-  });
+  }).select();
 
   if (profileError) {
     console.error('Profile creation error:', profileError);
-    // Even if profile creation fails, return success since auth user is created
-    // User can update profile later
+    // Return detailed error message
     return { 
       user: authData.user, 
-      error: 'Akun dibuat tapi gagal menyimpan data profil. Silakan update profil Anda di halaman profil.'
+      error: `Gagal menyimpan profil: ${profileError.message}. Detail: ${JSON.stringify(profileError.details || {})}. Hint: ${profileError.hint || 'Tidak ada hint'}`
     };
   }
 
-  console.log('Profile created successfully');
+  console.log('Profile created successfully:', profileData);
 
   return { user: authData.user, error: null };
 }
