@@ -1,23 +1,19 @@
 "use client";
 
 import React, { useState } from "react";
-import { Eye, EyeOff, Mail, Lock, User, ArrowRight } from "lucide-react";
+import Link from "next/link";
+import { Eye, EyeOff, Mail, Lock, ArrowRight } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { signIn, signUp } from "@/lib/auth/auth-actions";
+import { signIn } from "@/lib/auth/auth-actions";
 
 const App = () => {
   const router = useRouter();
-  const [view, setView] = useState("login"); // 'login' or 'register'
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
-    fullName: "",
-    school: "",
-    targetUniversity: "",
-    confirmPassword: "",
   });
 
   // Handle form submission
@@ -27,72 +23,22 @@ const App = () => {
     setError(null);
 
     try {
-      if (view === "login") {
-        // Login with Supabase
-        const { error: signInError } = await signIn(
-          formData.email,
-          formData.password
+      // Login with Supabase
+      const { error: signInError } = await signIn(
+        formData.email,
+        formData.password
+      );
+
+      if (signInError) {
+        setError(
+          signInError || "Email atau password salah. Silakan coba lagi."
         );
-
-        if (signInError) {
-          setError(
-            signInError || "Email atau password salah. Silakan coba lagi."
-          );
-          setIsLoading(false);
-          return;
-        }
-
-        // Success - redirect to home
-        router.push("/");
-      } else {
-        // Register with Supabase
-        // Validate password match
-        if (formData.password !== formData.confirmPassword) {
-          setError("Password tidak cocok!");
-          setIsLoading(false);
-          return;
-        }
-
-        // Validate password length
-        if (formData.password.length < 6) {
-          setError("Password minimal 6 karakter!");
-          setIsLoading(false);
-          return;
-        }
-
-        // Validate full name
-        if (!formData.fullName.trim()) {
-          setError("Nama lengkap wajib diisi!");
-          setIsLoading(false);
-          return;
-        }
-
-        const { error: signUpError } = await signUp(
-          formData.email,
-          formData.password,
-          formData.fullName,
-          formData.school,
-          formData.targetUniversity
-        );
-
-        if (signUpError) {
-          setError(signUpError || "Gagal mendaftar. Silakan coba lagi.");
-          setIsLoading(false);
-          return;
-        }
-
-        // Success - show message and redirect
-        alert("Pendaftaran berhasil! Silakan login.");
-        setView("login");
-        setFormData({
-          email: formData.email,
-          password: "",
-          fullName: "",
-          school: "",
-          targetUniversity: "",
-          confirmPassword: "",
-        });
+        setIsLoading(false);
+        return;
       }
+
+      // Success - redirect to home
+      router.push("/");
     } catch (err) {
       console.error("Auth error:", err);
       setError("Terjadi kesalahan. Silakan coba lagi.");
@@ -106,19 +52,6 @@ const App = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
     // Clear error when user starts typing
     if (error) setError(null);
-  };
-
-  const toggleView = () => {
-    setView(view === "login" ? "register" : "login");
-    setFormData({
-      email: "",
-      password: "",
-      fullName: "",
-      school: "",
-      targetUniversity: "",
-      confirmPassword: "",
-    });
-    setError(null);
   };
 
   return (
@@ -135,12 +68,10 @@ const App = () => {
             />
           </div>
           <h1 className="text-2xl font-bold text-gray-900 tracking-tight">
-            {view === "login" ? "Selamat Datang " : "Buat Akun Baru"}
+            Selamat Datang
           </h1>
           <p className="text-gray-500 text-sm mt-1">
-            {view === "login"
-              ? "Masuk untuk memulai simulasi UTBK"
-              : "Lengkapi data diri untuk berjuang bersama"}
+            Masuk untuk memulai simulasi UTBK
           </p>
         </div>
 
@@ -150,28 +81,6 @@ const App = () => {
           {error && (
             <div className="bg-red-50 border border-red-200 rounded-xl p-3 text-sm text-red-600 animate-shake">
               ⚠️ {error}
-            </div>
-          )}
-
-          {view === "register" && (
-            <div className="space-y-1">
-              <label className="text-sm font-semibold text-gray-700 ml-1">
-                Nama Lengkap
-              </label>
-              <div className="relative group">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400 group-focus-within:text-blue-500 transition-colors">
-                  <User size={18} />
-                </div>
-                <input
-                  type="text"
-                  name="fullName"
-                  required
-                  placeholder="Masukkan nama lengkap"
-                  className="block w-full pl-10 pr-3 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all text-sm"
-                  onChange={handleInputChange}
-                  value={formData.fullName}
-                />
-              </div>
             </div>
           )}
 
@@ -200,14 +109,12 @@ const App = () => {
               <label className="text-sm font-semibold text-gray-700">
                 Kata Sandi
               </label>
-              {view === "login" && (
-                <button
-                  type="button"
-                  className="text-xs font-medium text-blue-600 hover:text-blue-700"
-                >
-                  Lupa Kata Sandi?
-                </button>
-              )}
+              <button
+                type="button"
+                className="text-xs font-medium text-blue-600 hover:text-blue-700"
+              >
+                Lupa Kata Sandi?
+              </button>
             </div>
             <div className="relative group">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400 group-focus-within:text-blue-500 transition-colors">
@@ -232,70 +139,6 @@ const App = () => {
             </div>
           </div>
 
-          {view === "register" && (
-            <div className="space-y-1">
-              <label className="text-sm font-semibold text-gray-700 ml-1">
-                Konfirmasi Kata Sandi
-              </label>
-              <div className="relative group">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400 group-focus-within:text-blue-500 transition-colors">
-                  <Lock size={18} />
-                </div>
-                <input
-                  type="password"
-                  name="confirmPassword"
-                  required
-                  placeholder="Ulangi kata sandi"
-                  className="block w-full pl-10 pr-3 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all text-sm"
-                  onChange={handleInputChange}
-                  value={formData.confirmPassword}
-                />
-              </div>
-            </div>
-          )}
-
-          {view === "register" && (
-            <div className="space-y-1">
-              <label className="text-sm font-semibold text-gray-700 ml-1">
-                Asal Sekolah
-              </label>
-              <div className="relative group">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400 group-focus-within:text-blue-500 transition-colors">
-                  <span className="text-lg">🏫</span>
-                </div>
-                <input
-                  type="text"
-                  name="school"
-                  placeholder="Nama sekolah (opsional)"
-                  className="block w-full pl-10 pr-3 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all text-sm"
-                  onChange={handleInputChange}
-                  value={formData.school}
-                />
-              </div>
-            </div>
-          )}
-
-          {view === "register" && (
-            <div className="space-y-1">
-              <label className="text-sm font-semibold text-gray-700 ml-1">
-                Kampus Impian
-              </label>
-              <div className="relative group">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400 group-focus-within:text-blue-500 transition-colors">
-                  <span className="text-lg">🏛️</span>
-                </div>
-                <input
-                  type="text"
-                  name="targetUniversity"
-                  placeholder="Universitas tujuan (opsional)"
-                  className="block w-full pl-10 pr-3 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all text-sm"
-                  onChange={handleInputChange}
-                  value={formData.targetUniversity}
-                />
-              </div>
-            </div>
-          )}
-
           {/* Tombol Aksi Utama */}
           <button
             type="submit"
@@ -308,25 +151,22 @@ const App = () => {
               <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
             ) : (
               <>
-                <span>
-                  {view === "login" ? "Masuk Sekarang" : "Daftar Akun"}
-                </span>
+                <span>Masuk Sekarang</span>
                 <ArrowRight size={18} />
               </>
             )}
           </button>
 
-          {/* Toggle Login/Register */}
+          {/* Link to Register */}
           <div className="text-center mt-6">
             <p className="text-sm text-gray-500">
-              {view === "login" ? "Belum punya akun?" : "Sudah memiliki akun?"}
-              <button
-                type="button"
-                onClick={toggleView}
+              Belum punya akun?
+              <Link
+                href="/register"
                 className="ml-1 font-bold text-blue-600 hover:underline transition-all"
               >
-                {view === "login" ? "Daftar" : "Masuk"}
-              </button>
+                Daftar
+              </Link>
             </p>
           </div>
         </form>

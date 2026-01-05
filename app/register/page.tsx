@@ -1,19 +1,25 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import Link from "next/link";
+import { Eye, EyeOff, Mail, Lock, User, ArrowRight } from "lucide-react";
 import { useRouter } from "next/navigation";
-import Dock from "@/components/Dock";
 import { signUp } from "@/lib/auth/auth-actions";
-import { DEV_MODE } from "@/lib/auth/auth-helpers";
 
-export default function RegisterPage() {
+const RegisterPage = () => {
   const router = useRouter();
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+    fullName: "",
+    school: "",
+    targetUniversity: "",
+    confirmPassword: "",
+  });
   const [passwordStrength, setPasswordStrength] = useState<{
     isValid: boolean;
     hasMinLength: boolean;
@@ -47,301 +53,338 @@ export default function RegisterPage() {
     return isValid;
   };
 
-  // Handle password change
-  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newPassword = e.target.value;
-    setPassword(newPassword);
-    validatePassword(newPassword);
-  };
-
+  // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setError("");
+    setError(null);
 
     try {
-      // In dev mode, skip registration
-      if (DEV_MODE) {
-        console.log("🔧 DEV MODE: Skipping registration");
-        router.push("/");
-        return;
-      }
-
-      // Validate name
-      if (!name.trim()) {
-        setError("Nama lengkap wajib diisi!");
+      // Validate password match
+      if (formData.password !== formData.confirmPassword) {
+        setError("Password tidak cocok!");
         setIsLoading(false);
         return;
       }
 
       // Validate password strength
-      if (!validatePassword(password)) {
+      if (!validatePassword(formData.password)) {
         setError("Password harus memenuhi semua kriteria yang ditentukan!");
         setIsLoading(false);
         return;
       }
 
-      const { user, error: authError } = await signUp(email, password, name);
-
-      if (authError) {
-        setError(authError);
+      // Validate full name
+      if (!formData.fullName.trim()) {
+        setError("Nama lengkap wajib diisi!");
         setIsLoading(false);
         return;
       }
 
-      if (user) {
-        // Success - redirect to home
-        alert("Pendaftaran berhasil! Silakan login.");
-        router.push("/login");
+      const { error: signUpError } = await signUp(
+        formData.email,
+        formData.password,
+        formData.fullName,
+        formData.school,
+        formData.targetUniversity
+      );
+
+      if (signUpError) {
+        setError(signUpError || "Gagal mendaftar. Silakan coba lagi.");
+        setIsLoading(false);
+        return;
       }
+
+      // Success - show message and redirect
+      alert("Pendaftaran berhasil! Silakan login.");
+      router.push("/login");
     } catch (err) {
-      console.error("Registration error:", err);
+      console.error("Auth error:", err);
       setError("Terjadi kesalahan. Silakan coba lagi.");
+    } finally {
       setIsLoading(false);
     }
   };
 
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    // Validate password strength on change
+    if (name === "password") {
+      validatePassword(value);
+    }
+    // Clear error when user starts typing
+    if (error) setError(null);
+  };
+
   return (
-    <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-[#FFEE91] via-[#F5C857] to-[#E2852E] p-4 pb-24">
-      {/* Animated Background Elements */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute left-1/4 top-1/4 h-96 w-96 animate-pulse rounded-full bg-[#E2852E] opacity-20 blur-3xl"></div>
-        <div
-          className="absolute right-1/4 bottom-1/4 h-96 w-96 animate-pulse rounded-full bg-[#ABE0F0] opacity-30 blur-3xl"
-          style={{ animationDelay: "1s" }}
-        ></div>
-      </div>
+    <div className="min-h-screen bg-gray-50 flex flex-col justify-center items-center p-4 font-sans text-slate-800">
+      {/* Container Utama */}
+      <div className="w-full max-w-md bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100">
+        {/* Header/Logo Section */}
+        <div className="pt-10 pb-6 flex flex-col items-center">
+          <div className="relative w-28 h-28 rounded-2xl flex items-center justify-center mb-4 shadow-lg overflow-hidden group cursor-pointer bg-white border-2 border-gray-200 hover:border-blue-400 transition-all">
+            <img
+              src="/logo.png"
+              alt="Default Logo"
+              className="w-full h-full object-contain p-2"
+            />
+          </div>
+          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">
+            Buat Akun Baru
+          </h1>
+          <p className="text-gray-500 text-sm mt-1">
+            Lengkapi data diri untuk berjuang bersama
+          </p>
+        </div>
 
-      {/* Floating Elements */}
-      <div className="absolute inset-0">
-        {[...Array(20)].map((_, i) => (
-          <div
-            key={i}
-            className="absolute h-1.5 w-1.5 rounded-full bg-[#E2852E] opacity-40"
-            style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-              animation: `float ${2 + Math.random() * 3}s ease-in-out infinite`,
-              animationDelay: `${Math.random() * 2}s`,
-            }}
-          ></div>
-        ))}
-      </div>
-
-      <div className="relative z-10 flex min-h-screen items-center justify-center">
-        <div className="w-full max-w-md animate-scale-in">
-          {/* Dev Mode Badge */}
-          {DEV_MODE && (
-            <div className="mb-4 rounded-lg bg-yellow-500/20 border border-yellow-500/50 p-3 text-center text-yellow-800 backdrop-blur-sm">
-              🔧 <strong>DEV MODE</strong> - Auth disabled
+        {/* Form Section */}
+        <form onSubmit={handleSubmit} className="px-8 pb-10 space-y-5">
+          {/* Error Message */}
+          {error && (
+            <div className="bg-red-50 border border-red-200 rounded-xl p-3 text-sm text-red-600 animate-shake">
+              ⚠️ {error}
             </div>
           )}
 
-          {/* Glowing Card */}
-          <div className="rounded-3xl bg-white/20 p-1 backdrop-blur-xl shadow-2xl">
-            <div className="rounded-3xl bg-white/95 p-8 backdrop-blur-xl">
-              {/* Header */}
-              <div className="mb-8 text-center">
-                <div className="mb-4 inline-block animate-float">
-                  <div className="rounded-full bg-gradient-to-r from-[#E2852E] to-[#F5C857] p-1">
-                    <div className="rounded-full bg-white p-4">
-                      <span className="text-5xl">🚀</span>
-                    </div>
-                  </div>
-                </div>
-                <h1 className="mb-3 bg-gradient-to-r from-[#E2852E] to-[#F5C857] bg-clip-text text-4xl font-extrabold text-transparent">
-                  Bergabunglah!
-                </h1>
-                <p className="text-[#E2852E] font-medium">
-                  Mulai petualangan belajarmu sekarang
-                </p>
+          <div className="space-y-1">
+            <label className="text-sm font-semibold text-gray-700 ml-1">
+              Nama Lengkap
+            </label>
+            <div className="relative group">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400 group-focus-within:text-blue-500 transition-colors">
+                <User size={18} />
               </div>
-
-              {/* Error Message */}
-              {error && (
-                <div className="mb-4 rounded-xl bg-red-500/20 border border-red-500 p-3 text-red-700 text-sm">
-                  ⚠️ {error}
-                </div>
-              )}
-
-              {/* Form */}
-              <form onSubmit={handleSubmit} className="space-y-5">
-                <div className="group">
-                  <label
-                    htmlFor="name"
-                    className="mb-2 block text-sm font-semibold text-[#E2852E]"
-                  >
-                    👤 Nama Lengkap
-                  </label>
-                  <input
-                    type="text"
-                    id="name"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    className="w-full rounded-xl border-2 border-[#F5C857] bg-[#FFEE91]/30 px-4 py-3 text-[#E2852E] placeholder-[#E2852E]/50 backdrop-blur-sm transition-all duration-300 focus:border-[#E2852E] focus:outline-none focus:ring-4 focus:ring-[#E2852E]/30"
-                    placeholder="John Doe"
-                    required
-                  />
-                </div>
-
-                <div className="group">
-                  <label
-                    htmlFor="email"
-                    className="mb-2 block text-sm font-semibold text-[#E2852E]"
-                  >
-                    📧 Email
-                  </label>
-                  <input
-                    type="email"
-                    id="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full rounded-xl border-2 border-[#F5C857] bg-[#FFEE91]/30 px-4 py-3 text-[#E2852E] placeholder-[#E2852E]/50 backdrop-blur-sm transition-all duration-300 focus:border-[#E2852E] focus:outline-none focus:ring-4 focus:ring-[#E2852E]/30"
-                    placeholder="nama@email.com"
-                    required
-                  />
-                </div>
-
-                <div className="group">
-                  <label
-                    htmlFor="password"
-                    className="mb-2 block text-sm font-semibold text-[#E2852E]"
-                  >
-                    🔒 Password
-                  </label>
-                  <input
-                    type="password"
-                    id="password"
-                    value={password}
-                    onChange={handlePasswordChange}
-                    className="w-full rounded-xl border-2 border-[#F5C857] bg-[#FFEE91]/30 px-4 py-3 text-[#E2852E] placeholder-[#E2852E]/50 backdrop-blur-sm transition-all duration-300 focus:border-[#E2852E] focus:outline-none focus:ring-4 focus:ring-[#E2852E]/30"
-                    placeholder="••••••••"
-                    required
-                  />
-
-                  {/* Password Strength Indicator */}
-                  {password && (
-                    <div className="mt-3 space-y-2 rounded-lg bg-white/50 p-3 text-xs">
-                      <p className="font-semibold text-[#E2852E] mb-2">
-                        Kriteria Password:
-                      </p>
-                      <div className="space-y-1">
-                        <div
-                          className={`flex items-center gap-2 ${
-                            passwordStrength.hasMinLength
-                              ? "text-green-600"
-                              : "text-gray-500"
-                          }`}
-                        >
-                          <span>
-                            {passwordStrength.hasMinLength ? "✅" : "⭕"}
-                          </span>
-                          <span>Minimal 8 karakter</span>
-                        </div>
-                        <div
-                          className={`flex items-center gap-2 ${
-                            passwordStrength.hasLetter
-                              ? "text-green-600"
-                              : "text-gray-500"
-                          }`}
-                        >
-                          <span>
-                            {passwordStrength.hasLetter ? "✅" : "⭕"}
-                          </span>
-                          <span>Mengandung huruf (a-z, A-Z)</span>
-                        </div>
-                        <div
-                          className={`flex items-center gap-2 ${
-                            passwordStrength.hasNumber
-                              ? "text-green-600"
-                              : "text-gray-500"
-                          }`}
-                        >
-                          <span>
-                            {passwordStrength.hasNumber ? "✅" : "⭕"}
-                          </span>
-                          <span>Mengandung angka (0-9)</span>
-                        </div>
-                        <div
-                          className={`flex items-center gap-2 ${
-                            passwordStrength.hasSpecialChar
-                              ? "text-green-600"
-                              : "text-gray-500"
-                          }`}
-                        >
-                          <span>
-                            {passwordStrength.hasSpecialChar ? "✅" : "⭕"}
-                          </span>
-                          <span>Mengandung karakter khusus (!@#$%^&*)</span>
-                        </div>
-                      </div>
-                      {passwordStrength.isValid && (
-                        <div className="mt-2 flex items-center gap-2 rounded-md bg-green-100 px-2 py-1 text-green-700">
-                          <span>🎉</span>
-                          <span className="font-semibold">Password kuat!</span>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={isLoading}
-                  className="group relative w-full overflow-hidden rounded-xl bg-gradient-to-r from-[#E2852E] to-[#F5C857] px-6 py-4 font-bold text-white shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-[#E2852E]/50 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
-                >
-                  <span className="relative z-10 flex items-center justify-center gap-2 text-lg">
-                    {isLoading ? (
-                      <>
-                        <span className="animate-spin">⏳</span>
-                        <span>Memproses...</span>
-                      </>
-                    ) : (
-                      <>
-                        <span className="transition-transform duration-300 group-hover:rotate-12">
-                          🎉
-                        </span>
-                        <span className="transition-transform duration-300 group-hover:translate-x-1">
-                          Daftar Sekarang
-                        </span>
-                      </>
-                    )}
-                  </span>
-                </button>
-              </form>
-
-              {/* Footer Links */}
-              <div className="mt-8 text-center">
-                <p className="text-[#E2852E]">
-                  Sudah punya akun?{" "}
-                  <Link
-                    href="/login"
-                    className="font-bold text-[#E2852E] hover:text-[#F5C857] transition-all duration-300 underline"
-                  >
-                    Masuk sekarang →
-                  </Link>
-                </p>
-              </div>
-
-              <div className="mt-4 text-center">
-                <Link
-                  href="/"
-                  className="group inline-flex items-center gap-2 text-sm text-[#E2852E]/70 transition-colors hover:text-[#E2852E]"
-                >
-                  <span className="transition-transform duration-300 group-hover:-translate-x-1">
-                    ←
-                  </span>
-                  Kembali ke beranda
-                </Link>
-              </div>
+              <input
+                type="text"
+                name="fullName"
+                required
+                placeholder="Masukkan nama lengkap"
+                className="block w-full pl-10 pr-3 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all text-sm"
+                onChange={handleInputChange}
+                value={formData.fullName}
+              />
             </div>
           </div>
-        </div>
+
+          <div className="space-y-1">
+            <label className="text-sm font-semibold text-gray-700 ml-1">
+              Email
+            </label>
+            <div className="relative group">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400 group-focus-within:text-blue-500 transition-colors">
+                <Mail size={18} />
+              </div>
+              <input
+                type="email"
+                name="email"
+                required
+                placeholder="email@contoh.com"
+                className="block w-full pl-10 pr-3 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all text-sm"
+                onChange={handleInputChange}
+                value={formData.email}
+              />
+            </div>
+          </div>
+
+          <div className="space-y-1">
+            <label className="text-sm font-semibold text-gray-700 ml-1">
+              Kata Sandi
+            </label>
+            <div className="relative group">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400 group-focus-within:text-blue-500 transition-colors">
+                <Lock size={18} />
+              </div>
+              <input
+                type={showPassword ? "text" : "password"}
+                name="password"
+                required
+                placeholder="••••••••"
+                className="block w-full pl-10 pr-12 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all text-sm"
+                onChange={handleInputChange}
+                value={formData.password}
+              />
+              <button
+                type="button"
+                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
+            {/* Password Strength Indicator */}
+            <div className="mt-3 space-y-2 rounded-lg bg-gray-50 p-4 text-xs border border-gray-200">
+              <p className="font-bold text-gray-700 mb-3 text-sm">
+                Persyaratan Password:
+              </p>
+              <div className="space-y-2">
+                <div
+                  className={`flex items-center gap-2 transition-colors ${
+                    passwordStrength.hasMinLength
+                      ? "text-green-600"
+                      : "text-red-500"
+                  }`}
+                >
+                  <span className="font-bold text-base">
+                    {passwordStrength.hasMinLength ? "✓" : "✗"}
+                  </span>
+                  <span className="font-medium">Minimal 8 karakter</span>
+                </div>
+                <div
+                  className={`flex items-center gap-2 transition-colors ${
+                    passwordStrength.hasLetter
+                      ? "text-green-600"
+                      : "text-red-500"
+                  }`}
+                >
+                  <span className="font-bold text-base">
+                    {passwordStrength.hasLetter ? "✓" : "✗"}
+                  </span>
+                  <span className="font-medium">Minimal 1 huruf</span>
+                </div>
+                <div
+                  className={`flex items-center gap-2 transition-colors ${
+                    passwordStrength.hasNumber
+                      ? "text-green-600"
+                      : "text-red-500"
+                  }`}
+                >
+                  <span className="font-bold text-base">
+                    {passwordStrength.hasNumber ? "✓" : "✗"}
+                  </span>
+                  <span className="font-medium">Minimal 1 angka</span>
+                </div>
+                <div
+                  className={`flex items-center gap-2 transition-colors ${
+                    passwordStrength.hasSpecialChar
+                      ? "text-green-600"
+                      : "text-red-500"
+                  }`}
+                >
+                  <span className="font-bold text-base">
+                    {passwordStrength.hasSpecialChar ? "✓" : "✗"}
+                  </span>
+                  <span className="font-medium">
+                    Minimal 1 tanda khusus (!@#$%^&*)
+                  </span>
+                </div>
+              </div>
+              {passwordStrength.isValid && (
+                <div className="mt-3 flex items-center gap-2 rounded-lg bg-green-100 px-3 py-2 text-green-700 border border-green-300">
+                  <span>🎉</span>
+                  <span className="font-bold">Password kuat dan aman!</span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="space-y-1">
+            <label className="text-sm font-semibold text-gray-700 ml-1">
+              Konfirmasi Kata Sandi
+            </label>
+            <div className="relative group">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400 group-focus-within:text-blue-500 transition-colors">
+                <Lock size={18} />
+              </div>
+              <input
+                type={showConfirmPassword ? "text" : "password"}
+                name="confirmPassword"
+                required
+                placeholder="Ulangi kata sandi"
+                className="block w-full pl-10 pr-12 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all text-sm"
+                onChange={handleInputChange}
+                value={formData.confirmPassword}
+              />
+              <button
+                type="button"
+                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              >
+                {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
+          </div>
+
+          <div className="space-y-1">
+            <label className="text-sm font-semibold text-gray-700 ml-1">
+              Asal Sekolah
+            </label>
+            <div className="relative group">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400 group-focus-within:text-blue-500 transition-colors">
+                <span className="text-lg">🏫</span>
+              </div>
+              <input
+                type="text"
+                name="school"
+                placeholder="Nama sekolah (opsional)"
+                className="block w-full pl-10 pr-3 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all text-sm"
+                onChange={handleInputChange}
+                value={formData.school}
+              />
+            </div>
+          </div>
+
+          <div className="space-y-1">
+            <label className="text-sm font-semibold text-gray-700 ml-1">
+              Kampus Impian
+            </label>
+            <div className="relative group">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400 group-focus-within:text-blue-500 transition-colors">
+                <span className="text-lg">🏛️</span>
+              </div>
+              <input
+                type="text"
+                name="targetUniversity"
+                placeholder="Universitas tujuan (opsional)"
+                className="block w-full pl-10 pr-3 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all text-sm"
+                onChange={handleInputChange}
+                value={formData.targetUniversity}
+              />
+            </div>
+          </div>
+
+          {/* Tombol Aksi Utama */}
+          <button
+            type="submit"
+            disabled={isLoading}
+            className={`w-full py-3.5 px-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-100 flex items-center justify-center space-x-2 transition-all transform active:scale-[0.98] ${
+              isLoading ? "opacity-70 cursor-not-allowed" : ""
+            }`}
+          >
+            {isLoading ? (
+              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+            ) : (
+              <>
+                <span>Daftar Akun</span>
+                <ArrowRight size={18} />
+              </>
+            )}
+          </button>
+
+          {/* Link to Login */}
+          <div className="text-center mt-6">
+            <p className="text-sm text-gray-500">
+              Sudah memiliki akun?
+              <Link
+                href="/login"
+                className="ml-1 font-bold text-blue-600 hover:underline transition-all"
+              >
+                Masuk
+              </Link>
+            </p>
+          </div>
+        </form>
       </div>
 
-      <div className="fixed bottom-0 left-0 right-0 z-50 pb-4">
-        <Dock />
-      </div>
+      {/* Footer Filosofis */}
+      <footer className="mt-8 text-center max-w-sm px-4">
+        <p className="text-xs text-gray-400 leading-relaxed italic">
+          "Barang siapa yang menempuh jalan untuk mencari ilmu, maka Allah akan
+          mudahkan baginya jalan menuju surga." (HR. Muslim)
+        </p>
+      </footer>
     </div>
   );
-}
+};
+
+export default RegisterPage;
