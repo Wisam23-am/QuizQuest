@@ -60,8 +60,19 @@ function DockItem({
 }: DockItemProps) {
   const ref = useRef<HTMLDivElement>(null);
   const isHovered = useMotionValue(0);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   const mouseDistance = useTransform(mouseX, (val) => {
+    if (isMobile) return 0;
     const rect = ref.current?.getBoundingClientRect() ?? {
       x: 0,
       width: baseItemSize,
@@ -74,7 +85,7 @@ function DockItem({
     [-distance, 0, distance],
     [baseItemSize, magnification, baseItemSize]
   );
-  const size = useSpring(targetSize, spring);
+  const size = useSpring(isMobile ? baseItemSize : targetSize, spring);
 
   return (
     <motion.div
@@ -109,28 +120,34 @@ type DockLabelProps = {
   className?: string;
   children: React.ReactNode;
   isHovered?: MotionValue<number>;
+  isMobile?: boolean;
 };
 
-function DockLabel({ children, className = "", isHovered }: DockLabelProps) {
+function DockLabel({
+  children,
+  className = "",
+  isHovered,
+  isMobile = false,
+}: DockLabelProps) {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    if (!isHovered) return;
+    if (!isHovered || isMobile) return;
     const unsubscribe = isHovered.on("change", (latest) => {
       setIsVisible(latest === 1);
     });
     return () => unsubscribe();
-  }, [isHovered]);
+  }, [isHovered, isMobile]);
 
   return (
     <AnimatePresence>
-      {isVisible && (
+      {isVisible && !isMobile && (
         <motion.div
           initial={{ opacity: 0, y: 0 }}
           animate={{ opacity: 1, y: -10 }}
           exit={{ opacity: 0, y: 0 }}
           transition={{ duration: 0.2 }}
-          className={`${className} absolute -top-6 left-1/2 w-fit whitespace-pre rounded-md border border-[#3F72AF]/40 bg-gradient-to-r from-[#F9F7F7] to-[#DBE2EF] backdrop-blur-sm px-2 py-0.5 text-xs text-[#112D4E] font-medium shadow-lg`}
+          className={`${className} absolute -top-8 left-1/2 w-fit whitespace-pre rounded-md border border-[#3F72AF]/40 bg-gradient-to-r from-[#F9F7F7] to-[#DBE2EF] backdrop-blur-sm px-2 py-0.5 text-xs text-[#112D4E] font-medium shadow-lg z-50`}
           role="tooltip"
           style={{ x: "-50%" }}
         >
@@ -311,7 +328,7 @@ export default function Dock({
           mouseX.set(Infinity);
         }}
         className={`${className} absolute bottom-2 left-1/2 transform -translate-x-1/2 rounded-2xl bg-gradient-to-br from-[#F9F7F7]/95 via-[#DBE2EF]/90 to-[#F9F7F7]/95 backdrop-blur-md border-2 border-[#3F72AF]/40 shadow-2xl pb-2 px-4 
-          md:w-fit md:flex md:items-end md:gap-4
+          md:w-fit md:flex md:items-end md:gap-4 md:overflow-visible
           max-w-[calc(100vw-1rem)] overflow-x-auto overflow-y-hidden scrollbar-hide snap-x snap-mandatory`}
         style={{ height: panelHeight }}
         role="toolbar"
@@ -330,7 +347,13 @@ export default function Dock({
                 baseItemSize={baseItemSize}
               >
                 <DockIcon>{item.icon}</DockIcon>
-                <DockLabel>{item.label}</DockLabel>
+                <DockLabel
+                  isMobile={
+                    typeof window !== "undefined" && window.innerWidth < 768
+                  }
+                >
+                  {item.label}
+                </DockLabel>
               </DockItem>
             </div>
           ))}
